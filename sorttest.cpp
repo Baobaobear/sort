@@ -2,10 +2,22 @@
 // author:      baobaobear
 // create date: 2019-09-20
 
+#ifndef TEST_TYPE_SIMPLE
+#define TEST_TYPE_SIMPLE 1 // 0 TestClass; 1 int; 2 double;
+#define CONSOLE_OUTPUT 1
+#else
+#define CONSOLE_OUTPUT 0
+#endif
+
+#if TEST_TYPE_SIMPLE > 0 && !defined(BAOBAO_SORT_SAFE_MALLOC)
 #define BAOBAO_SORT_SAFE_MALLOC 0
+#endif
+
+#ifndef BAOBAO_SORT_SAFE_MALLOC
+#define BAOBAO_SORT_SAFE_MALLOC 0
+#endif
 #include "sortlib.hpp"
 
-#define TEST_TYPE_SIMPLE 1 // 0 TestClass; 1 int; 2 double;
 #include "sorttest.hpp"
 
 #include <vector>
@@ -154,7 +166,9 @@ static int data_xor_31(int n, int len)
 
 static void init_gen_data_fun_map(
     std::map<int, int(*)(int n, int len)> &gen_data_fun_map,
-    std::map<int, void(*)(sort_element_t arr[], size_t n)> &gen_data_shuffle)
+    std::map<int, void(*)(sort_element_t arr[], size_t n)> &gen_data_shuffle,
+    std::map<int, int>& split_size_map
+)
 {
     gen_data_fun_map[1] = data_1;
 
@@ -173,9 +187,10 @@ static void init_gen_data_fun_map(
 
     gen_data_fun_map[10] = data_n;
     gen_data_shuffle[10] = data_shuffle_shellsort;
-
     gen_data_fun_map[11] = data_n;
     gen_data_shuffle[11] = data_shuffle_heapsort;
+    gen_data_fun_map[12] = data_n;
+    split_size_map[12] = 260;
 }
 
 void init_test_func_map(
@@ -209,14 +224,16 @@ int main(void)
     std::map<std::string, void(*)(sort_element_t arr[], size_t n)> test_func_map;
     std::map<std::string, int> test_func_stable_map;
     std::map<int, void(*)(sort_element_t arr[], int n)> gen_data_func;
+    std::map<int, int> split_size_map;
 
-    init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle);
+    init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle, split_size_map);
     init_test_func_map(test_func_map, test_func_stable_map);
 
     int base_size = 1000 * (!!TEST_TYPE_SIMPLE + 1);
     int arr_size = base_size * base_size * 2;
     std::vector<sort_element_t> arr(arr_size);
 
+#if CONSOLE_OUTPUT == 1
     printf("Begin %u\n", (unsigned)arr.size());
 
     printf(" -|");
@@ -235,12 +252,14 @@ int main(void)
         printf("%12s|", "-----------:");
     }
     puts("");
+#endif
     std::map<std::string, std::map<int, int> > result_map;
     for (std::map<int, int (*)(int n, int len)>::iterator it_test = gen_data_fun_map.begin();
          it_test != gen_data_fun_map.end();
          ++it_test)
     {
-        printf("%2d|", it_test->first);
+        if (CONSOLE_OUTPUT)
+            printf("%2d|", it_test->first);
         if (gen_data_func.find(it_test->first) == gen_data_func.end())
         {
             for (int i = 0; i < (int)arr.size(); ++i)
@@ -267,38 +286,76 @@ int main(void)
              ++it)
         {
             std::vector<sort_element_t> arr_c = arr;
-            t = get_time();
-            it->second(&*arr_c.begin(), (int)arr_c.size());
-            int res_ms = (int)get_time_diff(t, get_time());
-            printf("%12d", (int)res_ms);
-            if (!baobao::check_sorted(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
+            int res_ms = 0;
+            bool correct = true;
+            if (split_size_map.find(it_test->first) != split_size_map.end())
             {
-                printf("E");
-                result_map[it->first][it_test->first] = -1;
+                int split_cnt = split_size_map[it_test->first];
+                int last_size = (int)arr.size() - split_cnt;
+                std::vector<sort_element_t> arr_c2 = arr;
+                t = get_time();
+                for (int i = 0; i < last_size; i += split_cnt)
+                {
+                    it->second(&*arr_c.begin() + i, split_cnt);
+                }
+                for (int i = 0; i < last_size; i += split_cnt)
+                {
+                    it->second(&*arr_c2.begin() + i, split_cnt);
+                }
+                res_ms = (int)get_time_diff(t, get_time());
+
+                //for (size_t i = 0; i < arr.size(); i++) // avoid optimize arr_c2
+                //{
+                //    if (arr_c[i] < arr_c2[i] || arr_c2[i] < arr_c[i])
+                //    {
+                //        correct = false;
+                //    }
+                //}
             }
             else
             {
-                bool correct = true;
-#if TEST_TYPE_SIMPLE == 0
-                if (test_func_stable_map.find(it->first) != test_func_stable_map.end())
+                t = get_time();
+                it->second(&*arr_c.begin(), (int)arr_c.size());
+                res_ms = (int)get_time_diff(t, get_time());
+            }
+            if (CONSOLE_OUTPUT)
+                printf("%12d", (int)res_ms);
+
+            if (split_size_map.find(it_test->first) == split_size_map.end())
+            {
+                if (!baobao::check_sorted(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
                 {
-                    if (!baobao::check_sorted_stable(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
+                    correct = false;
+                }
+#if TEST_TYPE_SIMPLE == 0
+                else
+                {
+                    if (test_func_stable_map.find(it->first) != test_func_stable_map.end())
                     {
-                        correct = false;
-                        printf("E");
-                        result_map[it->first][it_test->first] = -1;
+                        if (!baobao::check_sorted_stable(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
+                        {
+                            correct = false;
+                        }
                     }
                 }
 #endif
-                if (correct)
-                {
-                    printf("|");
-                    result_map[it->first][it_test->first] = res_ms;
-                }
-                fflush(stdout);
             }
+            if (correct)
+            {
+                if (CONSOLE_OUTPUT)
+                    printf("|");
+                result_map[it->first][it_test->first] = res_ms;
+            }
+            else
+            {
+                if (CONSOLE_OUTPUT)
+                    printf("E");
+                result_map[it->first][it_test->first] = -1;
+            }
+            fflush(stdout);
         }
-        puts("");
+        if (CONSOLE_OUTPUT)
+            printf("\n");
     }
 
     std::vector<std::string> index_name;
