@@ -186,6 +186,26 @@ void insert_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compar
     }
 }
 
+// stable sort
+template <class RandomAccessIterator, class Comp>
+inline void unguarded_insert_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    for (RandomAccessIterator i = beg; i < end; ++i)
+    {
+        if (compare(*i, *(i - 1)))
+        {
+            typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
+            RandomAccessIterator j = i - 1;
+            *i = *j;
+            for (;compare(val, *(j - 1)); --j)
+            {
+                *j = *(j - 1);
+            }
+            *j = val;
+        }
+    }
+}
+
 // len < 24
 template <class RandomAccessIterator, class Comp>
 void q_insert_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
@@ -220,16 +240,16 @@ void q_insert_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp comp
 
 // stable sort
 template <class RandomAccessIterator, class Comp>
-inline void insert_sort_part(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last, Comp compare)
+inline void insert_sort_part(RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
-    for (RandomAccessIterator i = mid; i < last; ++i)
+    for (RandomAccessIterator i = mid; i < end; ++i)
     {
         if (compare(*i, *(i - 1)))
         {
             typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
             RandomAccessIterator j = i - 1;
             *i = *j;
-            for (;j != first && compare(val, *(j - 1)); --j)
+            for (;j != beg && compare(val, *(j - 1)); --j)
             {
                 *j = *(j - 1);
             }
@@ -240,16 +260,16 @@ inline void insert_sort_part(RandomAccessIterator first, RandomAccessIterator mi
 
 // stable sort
 template <class RandomAccessIterator, class Comp>
-inline void insert_sort_part_rev(RandomAccessIterator first, RandomAccessIterator mid, RandomAccessIterator last, Comp compare)
+inline void insert_sort_part_rev(RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
-    for (RandomAccessIterator i = mid; i < last; ++i)
+    for (RandomAccessIterator i = mid; i < end; ++i)
     {
         if (!compare(*i, *(i - 1)))
         {
             typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
             RandomAccessIterator j = i - 1;
             *i = *j;
-            for (;j != first && !compare(val, *(j - 1)); --j)
+            for (;j != beg && !compare(val, *(j - 1)); --j)
             {
                 *j = *(j - 1);
             }
@@ -327,23 +347,8 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
         }
     }
 
-    diff_type split = incre_list[1];
-    for (diff_type i = 1; i < split; i++)
-    {
-        diff_type pos = i;
-        value_type val = *(beg + i);
-        for (; pos > 0 && compare(val, *(beg + pos - 1)); --pos)
-            *(beg + pos) = *(beg + pos - 1);
-        *(beg + pos) = val;
-    }
-    for (diff_type i = split; i < len; i++)
-    {
-        diff_type pos = i;
-        value_type val = *(beg + i);
-        for (; compare(val, *(beg + pos - 1)); --pos)
-            *(beg + pos) = *(beg + pos - 1);
-        *(beg + pos) = val;
-    }
+    baobao::sort::insert_sort(beg, beg + incre_list[1], compare);
+    baobao::sort::unguarded_insert_sort(beg + incre_list[1], end, compare);
 }
 
 template <class RandomAccessIterator, class Comp>

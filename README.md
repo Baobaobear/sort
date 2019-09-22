@@ -41,7 +41,7 @@ Call it like STL as well
 
 Run the code [sorttest.cpp](sorttest.cpp), it will output the result
 
-Build with `g++ -std=c++11 -O3 sorttest.cpp` on Centos 7 x64
+Build with `g++ -std=c++11 -O3 sorttest.cpp` on Centos 7 x64, gcc version is 8.3.1
 
 #### sorting int
 
