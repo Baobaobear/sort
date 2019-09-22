@@ -10,4 +10,4 @@ matrix:
   fast_finish: false
 build:
   parallel: true
-
+  project: sorttest.sln
