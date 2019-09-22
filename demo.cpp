@@ -6,6 +6,7 @@
 #include "sorttest.hpp"
 #include <vector>
 #include <functional>
+#include <cstdio>
 
 template<class RandomAccessIterator, class Comp>
 bool check_sorted(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)

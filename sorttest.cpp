@@ -30,7 +30,7 @@ int64_t get_time_diff(time_point from, time_point to)
 
 #else
 
-typedef int64_t time_point;
+typedef int32_t time_point;
 
 #ifdef __linux__
 #include <sys/time.h>
@@ -49,7 +49,7 @@ time_point get_time()
 #endif
 }
 
-int64_t get_time_diff(time_point from, time_point to)
+int32_t get_time_diff(time_point from, time_point to)
 {
     return to - from;
 }
@@ -82,7 +82,7 @@ static void data_shuffle_shellsort(sort_element_t arr[], size_t n)
 
     sort_element_t *beg = arr, *end = arr + n;
     size_t incre = 1;
-    while ((int64_t)incre * 3 + 1 < end - beg)
+    while (incre < (size_t)(end - beg) / 3)
         incre = incre * 3 + 1; // A003462, Pratt, 1971, Knuth, 1973
     for (; incre >= 10; incre /= 3)
     {
@@ -132,7 +132,7 @@ static int data_n(int n, int len)
 
 static int data_half_equal(int n, int len)
 {
-    return (int)(n % ((int64_t)len * 50 / 100));
+    return (int)(n % (len / 2));
 }
 
 static int data_mod_32(int n, int len)

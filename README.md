@@ -1,5 +1,7 @@
 # Sort
 
+[![Build Status](https://travis-ci.org/Baobaobear/sort.svg?branch=master)](https://travis-ci.org/Baobaobear/sort)
+
 # Overview
 
 This is a sorting library, compatible with C++98

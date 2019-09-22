@@ -5,22 +5,20 @@
 
 #pragma once
 
-#if __cplusplus >= 201103L || _MSC_VER >= 1700
-    #include <cstdint>
-    #include <type_traits>
-#else
-    typedef unsigned long long uint64_t;
-    typedef long long int64_t;
-    typedef unsigned int uint32_t;
-    typedef int int32_t;
-#endif
-
 #include <cstddef>
 #include <iterator>
 #include <algorithm>
 
 #include <cmath>
 #include <cstring>
+
+#if __cplusplus >= 201103L || _MSC_VER >= 1700
+    #include <cstdint>
+    #include <type_traits>
+#else
+    typedef unsigned int uint32_t;
+    typedef int int32_t;
+#endif
 
 // BAOBAO_SORT_SAFE_MALLOC
 // set to 1 means it allocated with new/delete
@@ -37,10 +35,10 @@ enum
 
     merge_insertion_sort_threshold = 16,
 
-    timsort_merge_insertion_sort_threshold = 8,
+    merge_2_part_insertion_sort_threshold = 8,
     timsort_last_run_threshold = 64,
     timsort_min_run = 20,
-    timsort_insert_gap = 8,
+    timsort_insert_gap = 8
 };
 
 namespace util
@@ -131,18 +129,18 @@ uint32_t fake_rand_simple()
 
 class LinearRandomNumberGenerator
 {
-    uint64_t rnd;
+    uint32_t rnd;
 public:
-    void set_seed(uint64_t seed)
+    void set_seed(uint32_t seed)
     {
         rnd = seed;
     }
     uint32_t next()
     {
-        // MMIX by Donald Knuth
+        // ANSI C
         // https://en.wikipedia.org/wiki/Linear_congruential_generator
-        rnd = rnd * 6364136223846793005u + 1442695040888963407u;
-        return (uint32_t)(rnd >> 13);
+        rnd = rnd * 1103515245u + 12345;
+        return rnd;
     }
     static LinearRandomNumberGenerator& instance()
     {
@@ -151,7 +149,7 @@ public:
     }
 };
 
-void rand_seed(uint64_t seed)
+void rand_seed(uint32_t seed)
 {
     baobao::util::LinearRandomNumberGenerator::instance().set_seed(seed);
 }
@@ -324,13 +322,13 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
     diff_type incre_index = 0;
     for (diff_type i = 1; i < 60; ++i)
     {
-        uint64_t mul = incre_list[i];
-        mul = (uint64_t)(mul * incre_factor);
-        if (mul >= (uint64_t)len)
+        diff_type mul = incre_list[i];
+        if (mul * incre_factor >= len)
         {
             incre_index = i;
             break;
         }
+        mul = (diff_type)(mul * incre_factor);
         incre_list[i + 1] = (diff_type)mul;
     }
 
@@ -386,18 +384,8 @@ void heap_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 
 // stable sort
 template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+void merge_2_part(RandomAccessBufferIterator buf, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
-    size_t len = end - beg;
-    if (len < merge_insertion_sort_threshold)
-    {
-        insert_sort(beg, end, compare);
-        return;
-    }
-    RandomAccessIterator mid = beg + (len >> 1);
-    baobao::sort::merge_sort_recursive(buf, beg, mid, compare);
-    baobao::sort::merge_sort_recursive(buf, mid, end, compare);
-
     if (!compare(*mid, *(mid - 1)))
     {
         return;
@@ -424,24 +412,42 @@ void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator b
         return;
     }
 
-    if (end - beg < 8)
+    if (end - beg < merge_2_part_insertion_sort_threshold)
     {
         baobao::sort::insert_sort(beg, end, compare);
         return;
     }
-
     if (mid - beg <= end - mid)
     {
-        RandomAccessBufferIterator start1 = buf, start1_end = buf + (mid - beg);
-        for (RandomAccessIterator s = beg; s != mid; ++s, ++start1)
+#if BAOBAO_SORT_SAFE_MALLOC
+        RandomAccessBufferIterator t = buf;
+        for (RandomAccessIterator s = beg; s != mid; ++s, ++t)
         {
-            *start1 = *s;
+            *t = *s;
         }
-        start1 = buf;
+#else
+        memcpy(buf, &*beg, (char*)&*mid - (char*)&*beg);
+#endif
+
+        RandomAccessBufferIterator start1 = buf, start1_end = buf + (mid - beg);
         RandomAccessIterator start2 = mid, k = beg;
-        while (start1 < start1_end && start2 < end)
+        if (start1 < start1_end && start2 < end)
         {
-            *k++ = compare(*start2, *start1) ? *start2++ : *start1++;
+            while (true)
+            {
+                if (compare(*start2, *start1))
+                {
+                    *k++ = *start2++;
+                    if (start2 >= end)
+                        break;
+                }
+                else
+                {
+                    *k++ = *start1++;
+                    if (start1 >= start1_end)
+                        break;
+                }
+            }
         }
         while (start1 < start1_end)
         {
@@ -450,22 +456,56 @@ void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator b
     }
     else
     {
-        RandomAccessBufferIterator start1 = buf, start1_end = buf;
-        for (RandomAccessIterator s = mid; s != end; ++s, ++start1)
+#if BAOBAO_SORT_SAFE_MALLOC
+        RandomAccessBufferIterator t = buf;
+        for (RandomAccessIterator s = mid; s != end; ++s, ++t)
         {
-            *start1 = *s;
+            *t = *s;
         }
-        start1 = buf + (end - mid) - 1;
+#else
+        memcpy(buf, &*mid, (char*)&*end - (char*)&*mid);
+#endif
+        RandomAccessBufferIterator start1 = buf + (end - mid) - 1, start1_end = buf;
         RandomAccessIterator start2 = mid - 1, k = end;
-        while (start1 >= start1_end && start2 >= beg)
+        if (start1 >= start1_end && start2 >= beg)
         {
-            *--k = compare(*start1, *start2) ? *start2-- : *start1--;
+            while (true)
+            {
+                if (compare(*start1, *start2))
+                {
+                    *--k = *start2--;
+                    if (start2 < beg)
+                        break;
+                }
+                else
+                {
+                    *--k = *start1--;
+                    if (start1 < start1_end)
+                        break;
+                }
+            }
         }
         while (start1 >= start1_end)
         {
             *--k = *start1--;
         }
     }
+}
+
+// stable sort
+template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
+void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    size_t len = end - beg;
+    if (len < merge_insertion_sort_threshold)
+    {
+        insert_sort(beg, end, compare);
+        return;
+    }
+    RandomAccessIterator mid = beg + (len >> 1);
+    baobao::sort::merge_sort_recursive(buf, beg, mid, compare);
+    baobao::sort::merge_sort_recursive(buf, mid, end, compare);
+    baobao::sort::merge_2_part(buf, beg, mid, end, compare);
 }
 
 // stable sort
@@ -531,88 +571,6 @@ void intro_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
 {
     double deep = log(end - beg) / log(1.5);
     baobao::sort::intro_sort_loop(beg, end, (int)deep, compare);
-}
-
-template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void tim_sort_merge_pair(RandomAccessBufferIterator buf, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
-{
-    if (!compare(*mid, *(mid - 1)))
-    {
-        return;
-    }
-    while (beg < mid && !compare(*mid, *beg))
-    {
-        ++beg;
-    }
-    if (beg < mid)
-    {
-        RandomAccessIterator mid_last = mid - 1, last = end - 1;
-        while (mid_last < last && !compare(*last, *mid_last))
-        {
-            --last;
-        }
-        if (mid_last == last)
-        {
-            return;
-        }
-        end = last + 1;
-    }
-    else
-    {
-        return;
-    }
-
-    if (end - beg < timsort_merge_insertion_sort_threshold)
-    {
-        baobao::sort::insert_sort(beg, end, compare);
-        return;
-    }
-
-    if (mid - beg <= end - mid)
-    {
-#if BAOBAO_SORT_SAFE_MALLOC
-        RandomAccessBufferIterator t = buf;
-        for (RandomAccessIterator s = beg; s != mid; ++s, ++t)
-        {
-            *t = *s;
-        }
-#else
-        memcpy(buf, &*beg, (char*)&*mid - (char*)&*beg);
-#endif
-
-        RandomAccessBufferIterator start1 = buf, start1_end = buf + (mid - beg);
-        RandomAccessIterator start2 = mid, k = beg;
-        while (start1 < start1_end && start2 < end)
-        {
-            *k++ = compare(*start2, *start1) ? *start2++ : *start1++;
-        }
-        while (start1 < start1_end)
-        {
-            *k++ = *start1++;
-        }
-    }
-    else
-    {
-#if BAOBAO_SORT_SAFE_MALLOC
-        RandomAccessBufferIterator t = buf;
-        for (RandomAccessIterator s = mid; s != end; ++s, ++t)
-        {
-            *t = *s;
-        }
-#else
-        memcpy(buf, &*mid, (char*)&*end - (char*)&*mid);
-#endif
-        RandomAccessBufferIterator start1 = buf + (end - mid) - 1, start1_end = buf;
-        RandomAccessIterator start2 = mid - 1, k = end;
-        while (start1 >= start1_end && start2 >= beg)
-        {
-            *--k = compare(*start1, *start2) ? *start2-- : *start1--;
-        }
-        while (start1 >= start1_end)
-        {
-            *--k = *start1--;
-        }
-    }
 }
 
 template <class RandomAccessIterator, class Comp>
@@ -682,13 +640,13 @@ void tim_sort_force_stack_merge(RandomAccessBufferIterator buf, RandomAccessIter
         {
             if (end[0] - end[-1] <= end[-2] - end[-3])
             {
-                baobao::sort::tim_sort_merge_pair(buf, end[-2], end[-1], end[0], compare);
+                baobao::sort::merge_2_part(buf, end[-2], end[-1], end[0], compare);
                 end[-1] = end[0];
                 --end;
             }
             else
             {
-                baobao::sort::tim_sort_merge_pair(buf, end[-3], end[-2], end[-1], compare);
+                baobao::sort::merge_2_part(buf, end[-3], end[-2], end[-1], compare);
                 end[-2] = end[-1];
                 end[-1] = end[0];
                 --end;
@@ -696,7 +654,7 @@ void tim_sort_force_stack_merge(RandomAccessBufferIterator buf, RandomAccessIter
         }
         else
         {
-            baobao::sort::tim_sort_merge_pair(buf, end[-2], end[-1], end[0], compare);
+            baobao::sort::merge_2_part(buf, end[-2], end[-1], end[0], compare);
             end[-1] = end[0];
             --end;
         }
@@ -717,14 +675,14 @@ void tim_sort_stack_merge(RandomAccessBufferIterator buf, RandomAccessIterator* 
                 {
                     if (stack_top[0] - stack_top[-1] <= stack_top[-2] - stack_top[-3]) // a <= c
                     {
-                        baobao::sort::tim_sort_merge_pair(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
-                        baobao::sort::tim_sort_merge_pair(buf, stack_top[-3], stack_top[-2], stack_top[0], compare);
+                        baobao::sort::merge_2_part(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
+                        baobao::sort::merge_2_part(buf, stack_top[-3], stack_top[-2], stack_top[0], compare);
                         stack_top[-2] = stack_top[0];
                         stack_top -= 2;
                     }
                     else
                     {
-                        baobao::sort::tim_sort_merge_pair(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
+                        baobao::sort::merge_2_part(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
                         stack_top[-2] = stack_top[-1];
                         stack_top[-1] = stack_top[0];
                         --stack_top;
@@ -735,7 +693,7 @@ void tim_sort_stack_merge(RandomAccessBufferIterator buf, RandomAccessIterator* 
             }
             if (stack_top[0] - stack_top[-1] >= stack_top[-1] - stack_top[-2]) // a >= b
             {
-                baobao::sort::tim_sort_merge_pair(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
+                baobao::sort::merge_2_part(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
                 stack_top[-1] = stack_top[0];
                 --stack_top;
                 merged = true;
@@ -751,13 +709,13 @@ void tim_sort_stack_merge_13(RandomAccessBufferIterator buf, RandomAccessIterato
     {
         if (stack_top - run_stack > 2 && (stack_top[0] - stack_top[-2]) * 4 / 3 >= stack_top[-1] - stack_top[-3]) // a >= c
         {
-            baobao::sort::tim_sort_merge_pair(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
+            baobao::sort::merge_2_part(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
             stack_top[-2] = stack_top[-1];
             stack_top[-1] = stack_top[0];
             --stack_top;
             while (stack_top - run_stack > 2 && (stack_top[-1] - stack_top[-2]) * 4 / 3 >= (stack_top[-2] - stack_top[-3]))
             {
-                baobao::sort::tim_sort_merge_pair(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
+                baobao::sort::merge_2_part(buf, stack_top[-3], stack_top[-2], stack_top[-1], compare);
                 stack_top[-2] = stack_top[-1];
                 stack_top[-1] = stack_top[0];
                 --stack_top;
@@ -765,7 +723,7 @@ void tim_sort_stack_merge_13(RandomAccessBufferIterator buf, RandomAccessIterato
         }
         else if ((stack_top[0] - stack_top[-1]) * 4 / 3 >= (stack_top[-1] - stack_top[-2])) // 1.333 * a > b
         {
-            baobao::sort::tim_sort_merge_pair(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
+            baobao::sort::merge_2_part(buf, stack_top[-2], stack_top[-1], stack_top[0], compare);
             stack_top[-1] = stack_top[0];
             --stack_top;
         }
