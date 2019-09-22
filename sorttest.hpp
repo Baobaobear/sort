@@ -1,0 +1,232 @@
+// filename:    sorttest.hpp
+// author:      baobaobear
+// create date: 2019-09-20
+
+#pragma once
+
+// TEST_TYPE_SIMPLE
+// 0 TestClass; 1 int; 2 double;
+#ifndef TEST_TYPE_SIMPLE
+#define TEST_TYPE_SIMPLE 0
+#endif
+
+#include <algorithm>
+#include <cstdlib>
+
+#if __cplusplus >= 201103L || _MSC_VER >= 1700
+#define BAO_SORT_LIB_STD11
+#endif
+
+#ifdef BAO_SORT_LIB_STD11
+#include <random>
+#endif
+
+namespace baobao
+{
+
+typedef int radix_index_t;
+
+struct TestClass
+{
+    static const int data_len = 8 - 2;
+    int val;
+    int index;
+    int data[data_len];
+
+    TestClass()
+        : val(0)
+        , index(0)
+    {
+    }
+
+    TestClass(const TestClass& v)
+        : val(v.val)
+        , index(v.index)
+    {
+        for (int i = 0; i < data_len; ++i)
+        {
+            data[i] = v.data[i];
+        }
+    }
+
+    bool operator < (const TestClass& v) const
+    {
+        return val < v.val;
+    }
+
+    bool operator > (const TestClass& v) const
+    {
+        return val > v.val;
+    }
+
+    //bool operator == (const TestClass& v) const = delete;
+
+    TestClass& operator = (const TestClass& v)
+    {
+        val = v.val;
+        index = v.index;
+        for (int i = 0; i < data_len; ++i)
+        {
+            data[i] = v.data[i];
+        }
+        return *this;
+    }
+
+    TestClass& operator = (int v)
+    {
+        val = v;
+        return *this;
+    }
+
+    radix_index_t get_index() const
+    {
+        return val;
+    }
+};
+
+template<class RandomAccessIterator, class Comp>
+bool check_sorted(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    for (RandomAccessIterator i = beg + 1; i != end; ++i)
+        if (compare(*i, *(i - 1)))
+            return false;
+    return true;
+}
+
+template<class RandomAccessIterator, class Comp>
+bool check_sorted_stable(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    for (RandomAccessIterator i = beg + 1; i != end; ++i)
+    {
+        if (compare(*i, *(i - 1)))
+            return false;
+        if (!compare(*(i - 1), *i))
+        {
+            if ((*(i - 1)).index > (*i).index)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+uint32_t random_int(uint32_t max_int)
+{
+#ifdef BAO_SORT_LIB_STD11
+    std::random_device rd;
+    static std::mt19937_64 e(rd());
+    std::uniform_int_distribution<int64_t> u(0, max_int);
+    return (int)u(e);
+#else
+    return (uint32_t)(baobao::util::rand_uint32() % (max_int + 1));
+#endif
+}
+
+template<class RandomAccessIterator>
+void random_shuffle(RandomAccessIterator beg, RandomAccessIterator end)
+{
+    typename std::iterator_traits<RandomAccessIterator>::difference_type n;
+    n = end - beg;
+    while (--n >= 1)
+    {
+        std::swap(*(beg + n), *(beg + random_int((uint32_t)n)));
+    }
+}
+
+}
+
+#if !TEST_TYPE_SIMPLE
+typedef baobao::TestClass sort_element_t;
+#else
+#if TEST_TYPE_SIMPLE == 1
+typedef int sort_element_t;
+#else
+typedef double sort_element_t;
+#endif
+#endif
+
+namespace stdsort
+{
+
+//quick_sort_c
+int sort_element_t_cmp(const void *a, const void *b)
+{
+#if TEST_TYPE_SIMPLE
+    return *(sort_element_t *)a - *(sort_element_t *)b;
+#else
+    if (*(sort_element_t *)a < *(sort_element_t *)b)
+    {
+        return -1;
+    }
+    if (*(sort_element_t *)b < *(sort_element_t *)a)
+    {
+        return 1;
+    }
+    return 0;
+#endif
+}
+
+void c_quick_sort(sort_element_t arr[], size_t n)
+{
+    qsort(arr, n, sizeof(*arr), sort_element_t_cmp);
+}
+
+void std_sort(sort_element_t arr[], size_t n)
+{
+    std::sort(arr, arr + n);
+}
+
+// stable sort
+void std_stable_sort(sort_element_t arr[], size_t len)
+{
+    std::stable_sort(arr, arr + len);
+}
+
+template <class Comp, class RandomAccessIterator>
+void std_heap_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    std::make_heap(beg, end, compare);
+    std::sort_heap(beg, end, compare);
+}
+
+void std_heap_sort(sort_element_t arr[], size_t length)
+{
+    std_heap_sort(arr, arr + length, std::less<sort_element_t>());
+}
+
+}
+
+
+namespace baobao_warp
+{
+void baobao_insert_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::insert_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_heap_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::heap_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_shell_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::shell_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_merge_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::merge_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_quick_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::intro_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_tim_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::tim_sort(arr, arr + len, std::less<sort_element_t>());
+}
+}
