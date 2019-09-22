@@ -190,6 +190,7 @@ static void init_gen_data_fun_map(
     gen_data_fun_map[11] = data_n;
     gen_data_shuffle[11] = data_shuffle_heapsort;
     gen_data_fun_map[12] = data_n;
+    gen_data_shuffle[12] = data_shuffle_func;
     split_size_map[12] = 260;
 }
 
