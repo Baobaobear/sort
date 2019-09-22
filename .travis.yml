@@ -67,5 +67,10 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
 
+    # windows mingw32
+    - os: windows
+      install: choco install mingw
+      script: mingw32-make
+
 before_install:
     - eval "${MATRIX_EVAL}"

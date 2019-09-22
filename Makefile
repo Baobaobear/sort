@@ -7,8 +7,6 @@ CFLAGS11 ?= -O3 -std=c++11 -Wall -pedantic -Wno-format
 
 default: clean demo1 demo2 test
 
-.PHONY: default clean
-
 test: benchmark0 benchmark1
 	./benchmark0
 	./benchmark1

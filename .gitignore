@@ -1,3 +1,7 @@
+# Dir
+Debug
+Release
+
 # Prerequisites
 *.d
 
@@ -30,3 +34,8 @@
 *.exe
 *.out
 *.app
+
+# VS files
+*.filters
+*.db
+*.opendb
