@@ -48,20 +48,20 @@ int64_t get_time_diff(time_point from, time_point to)
 
 typedef double time_point;
 
-#ifdef __linux__
-#include <sys/time.h>
-#else
+#ifdef _WIN32
 #include <time.h>
+#else
+#include <sys/time.h>
 #endif
 
 time_point get_time()
 {
-#ifdef __linux__
+#ifdef _WIN32
+    return clock();
+#else
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000;
-#else
-    return clock();
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 #endif
 }
 
@@ -213,8 +213,8 @@ void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
     // std function
     {
 #ifdef BAOBAO_UNIX_STDLIB_SORT
-        test_func_map["bsd_heap"] = stdsort::c_heap_sort;
-        test_func_map["bsd_merge"] = stdsort::c_merge_sort;
+        test_func_map["unix_heap"] = stdsort::c_heap_sort;
+        test_func_map["unix_merge"] = stdsort::c_merge_sort;
 #endif
         test_func_map["std_heap"] = stdsort::std_heap_sort;
         test_func_map["std_stable"] = stdsort::std_stable_sort;
