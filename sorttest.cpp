@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <string>
 #include <cstdio>
 
 typedef int(*gen_data_func_t)(int n, int len);
@@ -45,7 +46,7 @@ int64_t get_time_diff(time_point from, time_point to)
 
 #else
 
-typedef int32_t time_point;
+typedef double time_point;
 
 #ifdef __linux__
 #include <sys/time.h>
@@ -58,7 +59,7 @@ time_point get_time()
 #ifdef __linux__
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000;
 #else
     return clock();
 #endif
@@ -66,7 +67,7 @@ time_point get_time()
 
 int32_t get_time_diff(time_point from, time_point to)
 {
-    return to - from;
+    return (int32_t)(to - from);
 }
 
 #endif
