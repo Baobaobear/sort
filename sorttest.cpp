@@ -25,6 +25,9 @@
 #include <functional>
 #include <cstdio>
 
+typedef int(*gen_data_func_t)(int n, int len);
+typedef void(*arrar_function_t)(sort_element_t arr[], size_t n);
+
 #ifdef BAO_SORT_LIB_STD11
 #include <chrono>
 
@@ -165,8 +168,8 @@ static int data_xor_31(int n, int len)
 }
 
 static void init_gen_data_fun_map(
-    std::map<int, int(*)(int n, int len)> &gen_data_fun_map,
-    std::map<int, void(*)(sort_element_t arr[], size_t n)> &gen_data_shuffle,
+    std::map<int, gen_data_func_t> &gen_data_fun_map,
+    std::map<int, arrar_function_t> &gen_data_shuffle,
     std::map<int, int>& split_size_map
 )
 {
@@ -194,23 +197,26 @@ static void init_gen_data_fun_map(
     split_size_map[12] = 260;
 }
 
-void init_test_func_map(
-    std::map<std::string, void(*)(sort_element_t arr[], size_t n)> &test_func_map,
-    std::map<std::string, int> &test_func_stable_map)
+void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
 {
     // baobao's function
     {
         //test_func_map["bao_insert"] = baobao_warp::baobao_insert_sort;
         test_func_map["bao_heap"] = baobao_warp::baobao_heap_sort;
         test_func_map["bao_shell"] = baobao_warp::baobao_shell_sort;
-        test_func_map["bao_merge"] = baobao_warp::baobao_merge_sort; test_func_stable_map["bao_merge"] = 1;
+        test_func_map["bao_merge"] = baobao_warp::baobao_merge_sort;
+        test_func_map["bao_mer_in"] = baobao_warp::baobao_merge_sort_in_place;
         test_func_map["bao_qsort"] = baobao_warp::baobao_quick_sort;
-        test_func_map["bao_tim"] = baobao_warp::baobao_tim_sort; test_func_stable_map["bao_tim"] = 1;
+        test_func_map["bao_tim"] = baobao_warp::baobao_tim_sort;
     }
     // std function
     {
+#ifdef BAOBAO_UNIX_STDLIB_SORT
+        test_func_map["bsd_heap"] = stdsort::c_heap_sort;
+        test_func_map["bsd_merge"] = stdsort::c_merge_sort;
+#endif
         test_func_map["std_heap"] = stdsort::std_heap_sort;
-        test_func_map["std_stable"] = stdsort::std_stable_sort; test_func_stable_map["std_stable"] = 1;
+        test_func_map["std_stable"] = stdsort::std_stable_sort;
         test_func_map["std_qsort"] = stdsort::c_quick_sort;
         test_func_map["std_sort"] = stdsort::std_sort;
     }
@@ -220,15 +226,14 @@ int main(void)
 {
     time_point t;
 
-    std::map<int, int(*)(int n, int len)> gen_data_fun_map;
-    std::map<int, void(*)(sort_element_t arr[], size_t n)> gen_data_shuffle;
-    std::map<std::string, void(*)(sort_element_t arr[], size_t n)> test_func_map;
-    std::map<std::string, int> test_func_stable_map;
-    std::map<int, void(*)(sort_element_t arr[], int n)> gen_data_func;
+    std::map<int, gen_data_func_t> gen_data_fun_map;
+    std::map<int, arrar_function_t> gen_data_shuffle;
+    std::map<std::string, arrar_function_t> test_func_map;
+    std::map<int, arrar_function_t> gen_data_func;
     std::map<int, int> split_size_map;
 
     init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle, split_size_map);
-    init_test_func_map(test_func_map, test_func_stable_map);
+    init_test_func_map(test_func_map);
 
     int base_size = 1000 * (!!TEST_TYPE_SIMPLE + 1);
     int arr_size = base_size * base_size * 2;
@@ -238,7 +243,7 @@ int main(void)
     printf("Begin %u\n", (unsigned)arr.size());
 
     printf(" -|");
-    for (std::map<std::string, void (*)(sort_element_t arr[], size_t n)>::iterator it = test_func_map.begin();
+    for (std::map<std::string, arrar_function_t>::iterator it = test_func_map.begin();
          it != test_func_map.end();
          ++it)
     {
@@ -246,7 +251,7 @@ int main(void)
     }
     puts("");
     printf("-:|");
-    for (std::map<std::string, void (*)(sort_element_t arr[], size_t n)>::iterator it = test_func_map.begin();
+    for (std::map<std::string, arrar_function_t>::iterator it = test_func_map.begin();
          it != test_func_map.end();
          ++it)
     {
@@ -255,7 +260,8 @@ int main(void)
     puts("");
 #endif
     std::map<std::string, std::map<int, int> > result_map;
-    for (std::map<int, int (*)(int n, int len)>::iterator it_test = gen_data_fun_map.begin();
+    std::map<std::string, int > unstable_map;
+    for (std::map<int, gen_data_func_t>::iterator it_test = gen_data_fun_map.begin();
          it_test != gen_data_fun_map.end();
          ++it_test)
     {
@@ -282,7 +288,7 @@ int main(void)
             arr[i].index = i;
         }
 #endif
-        for (std::map<std::string, void (*)(sort_element_t arr[], size_t n)>::iterator it = test_func_map.begin();
+        for (std::map<std::string, arrar_function_t>::iterator it = test_func_map.begin();
              it != test_func_map.end();
              ++it)
         {
@@ -320,7 +326,7 @@ int main(void)
                 res_ms = (int)get_time_diff(t, get_time());
             }
             if (CONSOLE_OUTPUT)
-                printf("%12d", (int)res_ms);
+                printf("%12d|", (int)res_ms);
 
             if (split_size_map.find(it_test->first) == split_size_map.end())
             {
@@ -331,26 +337,19 @@ int main(void)
 #if TEST_TYPE_SIMPLE == 0
                 else
                 {
-                    if (test_func_stable_map.find(it->first) != test_func_stable_map.end())
+                    if (!baobao::check_sorted_stable(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
                     {
-                        if (!baobao::check_sorted_stable(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
-                        {
-                            correct = false;
-                        }
+                        unstable_map[it->first] = 1;
                     }
                 }
 #endif
             }
             if (correct)
             {
-                if (CONSOLE_OUTPUT)
-                    printf("|");
                 result_map[it->first][it_test->first] = res_ms;
             }
             else
             {
-                if (CONSOLE_OUTPUT)
-                    printf("E");
                 result_map[it->first][it_test->first] = -1;
             }
             fflush(stdout);
@@ -362,13 +361,13 @@ int main(void)
     std::vector<std::string> index_name;
     std::vector<algo_score> final_score;
 
-    for (std::map<std::string, void (*)(sort_element_t arr[], size_t n)>::iterator it_test = test_func_map.begin();
+    for (std::map<std::string, arrar_function_t>::iterator it_test = test_func_map.begin();
          it_test != test_func_map.end();
          ++it_test)
     {
         index_name.push_back(it_test->first);
         final_score.push_back(algo_score(0, (int)index_name.size() - 1, it_test->first));
-        for (std::map<int, int (*)(int n, int len)>::iterator it = gen_data_fun_map.begin();
+        for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
              it != gen_data_fun_map.end();
              ++it)
         {
@@ -384,8 +383,18 @@ int main(void)
         }
     }
 
+#if TEST_TYPE_SIMPLE == 0
+    printf("\n%-12s||\n------------|---\n", "stable test");
+    for (std::map<std::string, arrar_function_t>::iterator it_test = test_func_map.begin();
+        it_test != test_func_map.end();
+        ++it_test)
+    {
+        printf("%-12s|%s\n", it_test->first.c_str(), (unstable_map.find(it_test->first) != unstable_map.end() ? "no" : "yes"));
+    }
+#endif
+
     printf("\n%-12s|", "test");
-    for (std::map<int, int (*)(int n, int len)>::iterator it = gen_data_fun_map.begin();
+    for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
          it != gen_data_fun_map.end();
          ++it)
     {
@@ -393,7 +402,7 @@ int main(void)
     }
     puts("score|");
     printf("------------|");
-    for (std::map<int, int (*)(int n, int len)>::iterator it = gen_data_fun_map.begin();
+    for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
          it != gen_data_fun_map.end();
          ++it)
     {
@@ -408,7 +417,7 @@ int main(void)
         std::string name = it_test->name;
         printf("%-12s|", name.c_str());
         int sum = 0;
-        for (std::map<int, int (*)(int n, int len)>::iterator it = gen_data_fun_map.begin();
+        for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
              it != gen_data_fun_map.end();
              ++it)
         {

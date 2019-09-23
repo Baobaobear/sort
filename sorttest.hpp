@@ -172,6 +172,19 @@ void c_quick_sort(sort_element_t arr[], size_t n)
     qsort(arr, n, sizeof(*arr), sort_element_t_cmp);
 }
 
+#if !defined(_WIN32) && !defined(_WIN64) && !defined(__linux__) && !defined(__CYGWIN__)
+#define BAOBAO_UNIX_STDLIB_SORT
+void c_heap_sort(sort_element_t arr[], size_t n)
+{
+    heapsort(arr, n, sizeof(*arr), sort_element_t_cmp);
+}
+
+void c_merge_sort(sort_element_t arr[], size_t n)
+{
+    mergesort(arr, n, sizeof(*arr), sort_element_t_cmp);
+}
+#endif
+
 void std_sort(sort_element_t arr[], size_t n)
 {
     std::sort(arr, arr + n);
@@ -200,6 +213,7 @@ void std_heap_sort(sort_element_t arr[], size_t length)
 
 namespace baobao_warp
 {
+
 void baobao_insert_sort(sort_element_t arr[], size_t len)
 {
     baobao::sort::insert_sort(arr, arr + len, std::less<sort_element_t>());
@@ -218,6 +232,11 @@ void baobao_shell_sort(sort_element_t arr[], size_t len)
 void baobao_merge_sort(sort_element_t arr[], size_t len)
 {
     baobao::sort::merge_sort(arr, arr + len, std::less<sort_element_t>());
+}
+
+void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
+{
+    baobao::sort::merge_sort_in_place(arr, arr + len, std::less<sort_element_t>());
 }
 
 void baobao_quick_sort(sort_element_t arr[], size_t len)

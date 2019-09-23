@@ -1,5 +1,8 @@
 version: 1.0.{build}
-image: Visual Studio 2015
+image:
+- Visual Studio 2015
+- Visual Studio 2017
+- Visual Studio 2019
 environment:
   matrix:
     - platform: x86
@@ -9,5 +12,6 @@ environment:
 matrix:
   fast_finish: false
 build:
+  verbosity: Minimal
   parallel: true
   project: sorttest.sln
