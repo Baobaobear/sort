@@ -3,17 +3,17 @@ environment:
   matrix:
     - solution_name: sorttest\sorttest.sln
       image: Visual Studio 2015
-      - platform: x86
-        configuration: Release
-      - platform: x64
-        configuration: Release
+      configuration: Release
+      platform:
+        - x86
+        - x64
     - solution_name: sorttest\sorttest17.sln
       image: Visual Studio 2017
-      - platform: x86
-        configuration: Release
-      - platform: x64
-        configuration: Release
-matrix:
+      configuration: Release
+      platform:
+        - x86
+        - x64
+atrix:
   fast_finish: false
 build_script:
   - msbuild %solution_name%
