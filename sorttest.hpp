@@ -54,10 +54,10 @@ struct TestClass
         return val < v.val;
     }
 
-    bool operator > (const TestClass& v) const
-    {
-        return val > v.val;
-    }
+    //bool operator > (const TestClass& v) const
+    //{
+    //    return val > v.val;
+    //}
 
     //bool operator == (const TestClass& v) const = delete;
 
@@ -134,6 +134,16 @@ void random_shuffle(RandomAccessIterator beg, RandomAccessIterator end)
     }
 }
 
+template<class Element>
+struct less_rev
+{
+    bool operator()(const Element& a, const Element& b) const
+    {
+        return b < a;
+    }
+};
+
+
 }
 
 #if !TEST_TYPE_SIMPLE
@@ -169,19 +179,19 @@ int sort_element_t_cmp(const void *a, const void *b)
 
 void c_quick_sort(sort_element_t arr[], size_t n)
 {
-    qsort(arr, n, sizeof(*arr), sort_element_t_cmp);
+    qsort(arr, n, sizeof(sort_element_t), sort_element_t_cmp);
 }
 
 #if !defined(_WIN32) && !defined(_WIN64) && !defined(__linux__) && !defined(__CYGWIN__)
 #define BAOBAO_UNIX_STDLIB_SORT
 void c_heap_sort(sort_element_t arr[], size_t n)
 {
-    heapsort(arr, n, sizeof(*arr), sort_element_t_cmp);
+    heapsort(arr, n, sizeof(sort_element_t), sort_element_t_cmp);
 }
 
 void c_merge_sort(sort_element_t arr[], size_t n)
 {
-    mergesort(arr, n, sizeof(*arr), sort_element_t_cmp);
+    mergesort(arr, n, sizeof(sort_element_t), sort_element_t_cmp);
 }
 #endif
 
@@ -196,16 +206,16 @@ void std_stable_sort(sort_element_t arr[], size_t len)
     std::stable_sort(arr, arr + len);
 }
 
-template <class Comp, class RandomAccessIterator>
-void std_heap_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+template <class RandomAccessIterator>
+void std_heap_sort(RandomAccessIterator beg, RandomAccessIterator end)
 {
-    std::make_heap(beg, end, compare);
-    std::sort_heap(beg, end, compare);
+    std::make_heap(beg, end);
+    std::sort_heap(beg, end);
 }
 
 void std_heap_sort(sort_element_t arr[], size_t length)
 {
-    std_heap_sort(arr, arr + length, std::less<sort_element_t>());
+    std_heap_sort(arr, arr + length);
 }
 
 }
@@ -216,36 +226,36 @@ namespace baobao_warp
 
 void baobao_insert_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::insert_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::insert_sort(arr, arr + len);
 }
 
 void baobao_heap_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::heap_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::heap_sort(arr, arr + len);
 }
 
 void baobao_shell_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::shell_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::shell_sort(arr, arr + len);
 }
 
 void baobao_merge_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::merge_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::merge_sort(arr, arr + len);
 }
 
 void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
 {
-    baobao::sort::merge_sort_in_place(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::merge_sort_in_place(arr, arr + len);
 }
 
 void baobao_quick_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::intro_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::intro_sort(arr, arr + len);
 }
 
 void baobao_tim_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::tim_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::sort::tim_sort(arr, arr + len);
 }
 }

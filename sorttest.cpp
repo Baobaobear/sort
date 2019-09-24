@@ -117,8 +117,8 @@ static void data_shuffle_shellsort(sort_element_t arr[], size_t n)
 static void data_shuffle_heapsort(sort_element_t arr[], size_t n)
 {
     baobao::random_shuffle(arr, arr + n);
-    std::make_heap(arr, arr + n, std::greater<sort_element_t>());
-    std::make_heap(arr, arr + n / 2, std::greater<sort_element_t>());
+    std::make_heap(arr, arr + n, baobao::less_rev<sort_element_t>());
+    std::make_heap(arr, arr + n / 2, baobao::less_rev<sort_element_t>());
 }
 
 static int data_1(int n, int len)
@@ -401,7 +401,7 @@ int main(void)
     {
         printf("  %-3d|", it->first);
     }
-    puts("score|");
+    puts(" Avg |");
     printf("------------|");
     for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
          it != gen_data_fun_map.end();
@@ -441,7 +441,7 @@ int main(void)
                 printf("%5s|", "Time");
             }
         }
-        printf("%5d|\n", it_test->score / 10);
+        printf("%5d|\n", (int)(it_test->score / gen_data_fun_map.size()));
     }
     printf("\n%u END\n", (unsigned)arr.size());
     fflush(stdout);

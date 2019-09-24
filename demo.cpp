@@ -17,10 +17,10 @@ bool check_sorted(RandomAccessIterator beg, RandomAccessIterator end, Comp compa
     return true;
 }
 
-template <class RandomAccessIterator, class Comp>
-void print_check_sorted(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+template <class RandomAccessIterator>
+void print_check_sorted(RandomAccessIterator beg, RandomAccessIterator end)
 {
-    if (check_sorted(beg, end, compare))
+    if (check_sorted(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>()))
     {
         printf("OK\n");
     }
@@ -42,28 +42,28 @@ int main(void)
     }
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::insert_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::insert_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::heap_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::heap_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::shell_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::shell_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::intro_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::intro_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::merge_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::merge_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::tim_sort(arr.begin(), arr.end(), std::less<sort_t>());
-    print_check_sorted(arr.begin(), arr.end(), std::less<sort_t>());
+    baobao::sort::tim_sort(arr.begin(), arr.end());
+    print_check_sorted(arr.begin(), arr.end());
 
     return 0;
 }
