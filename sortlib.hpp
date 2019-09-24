@@ -31,13 +31,13 @@ namespace baobao
 {
 enum
 {
-    qsort_insertion_sort_threshold = 24,
+    qsort_insertion_sort_threshold = 40,
 
-    merge_insertion_sort_threshold = 16,
+    merge_insertion_sort_threshold = 32,
+    merge_2_part_insertion_sort_threshold = 32,
 
-    merge_2_part_insertion_sort_threshold = 8,
     timsort_last_run_threshold = 64,
-    timsort_min_run = 20,
+    timsort_min_run = 32,
     timsort_insert_gap = 8
 };
 
@@ -211,19 +211,16 @@ inline void unguarded_insert_sort(RandomAccessIterator beg, RandomAccessIterator
     }
 }
 
-// len < 24
+// len <= 40
 template <class RandomAccessIterator, class Comp>
 void q_insert_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    const int incre = 11;
-    for (RandomAccessIterator i = beg + incre; i < end; i++)
+    const int incre = 13;
+    for (RandomAccessIterator i = beg + incre, j = beg; i < end; ++i, ++j)
     {
-        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
-        RandomAccessIterator j = i - incre;
         if (compare(*i, *j))
         {
-            *i = *j;
-            *j = val;
+            std::swap(*i, *j);
         }
     }
 
@@ -660,24 +657,12 @@ void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end)
 }
 
 template <class RandomAccessIterator, class Comp>
-void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int deep, Comp compare)
+RandomAccessIterator intro_sort_partition(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
-    diff_type n = end - beg;
-    if (n < qsort_insertion_sort_threshold)
-    {
-        baobao::sort::q_insert_sort(beg, end, compare);
-        return;
-    }
-    if (deep <= 0)
-    {
-        baobao::sort::heap_sort(beg, end, compare);
-        return;
-    }
-
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = baobao::util::fake_rand_simple();
-    diff_type h = n / 2, w = n / 4;
+    diff_type n = end - beg, h = n / 2, w = n / 4;
     baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + rnd % w + h), compare);
 
     typename std::iterator_traits<RandomAccessIterator>::value_type pivot = *r;
@@ -692,8 +677,25 @@ void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int dee
         std::swap(*l++, *r);
     }
     std::swap(*l, *(end - 1));
-    r = l + 1;
-    while (r < end && baobao::util::object_equal(*r, pivot, compare)) ++r;
+    return l;
+}
+
+template <class RandomAccessIterator, class Comp>
+void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int deep, Comp compare)
+{
+    if (end - beg <= qsort_insertion_sort_threshold)
+    {
+        baobao::sort::q_insert_sort(beg, end, compare);
+        return;
+    }
+    if (deep <= 0)
+    {
+        baobao::sort::heap_sort(beg, end, compare);
+        return;
+    }
+
+    RandomAccessIterator l = baobao::sort::intro_sort_partition(beg, end, compare), r = l + 1;
+    while (r < end && baobao::util::object_equal(*r, *l, compare)) ++r;
 
     if (l - beg < end - r)
     {
@@ -893,7 +895,7 @@ void tim_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
         run_stack[0] = beg;
         run_stack[1] = beg = baobao::sort::tim_sort_create_run(beg, end, compare);
 
-        if (beg < end)
+        if ((end - beg) * sizeof(value_type) > 4096)
         {
             value_type* buf = baobao::util::new_buffer<value_type>((end - run_stack[0]) / 2);
             while (beg < end)
@@ -908,6 +910,22 @@ void tim_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 
             baobao::sort::tim_sort_force_stack_merge(buf, run_stack, stack_top, compare);
             baobao::util::delete_buffer(buf);
+        }
+        else if (end > beg)
+        {
+            typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
+            value_type buf[4096 / sizeof(value_type)];
+            while (beg < end)
+            {
+                RandomAccessIterator run = baobao::sort::tim_sort_create_run(beg, end, compare);
+                *++stack_top = run;
+                beg = run;
+
+                //tim_sort_stack_merge<T, RandomAccessIterator, Comp>(buf, run_stack, stack_top, end);
+                baobao::sort::tim_sort_stack_merge_13(buf, run_stack, stack_top, end, compare);
+            }
+
+            baobao::sort::tim_sort_force_stack_merge(buf, run_stack, stack_top, compare);
         }
     }
 }
