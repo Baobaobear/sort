@@ -4,15 +4,15 @@ image:
 - Visual Studio 2017
 environment:
   matrix:
-    - solution_name: sorttest\sorttest.sln
     - platform: x86
+      solution_name: sorttest\sorttest.sln
       configuration: Release
+      verbosity: Minimal
     - platform: x64
+      solution_name: sorttest\sorttest.sln
       configuration: Release
+      verbosity: Minimal
 matrix:
   fast_finish: false
-build:
-  verbosity: Minimal
-  parallel: true
 build_script:
   - msbuild %solution_name%
