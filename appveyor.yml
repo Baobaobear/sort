@@ -1,17 +1,18 @@
 version: 1.0.{build}
-image:
-- Visual Studio 2015
-- Visual Studio 2017
 environment:
   matrix:
-    - platform: x86
-      solution_name: sorttest\sorttest.sln
-      configuration: Release
-      verbosity: Minimal
-    - platform: x64
-      solution_name: sorttest\sorttest.sln
-      configuration: Release
-      verbosity: Minimal
+    - solution_name: sorttest\sorttest.sln
+      image: Visual Studio 2015
+      - platform: x86
+        configuration: Release
+      - platform: x64
+        configuration: Release
+    - solution_name: sorttest\sorttest17.sln
+      image: Visual Studio 2017
+      - platform: x86
+        configuration: Release
+      - platform: x64
+        configuration: Release
 matrix:
   fast_finish: false
 build_script:
