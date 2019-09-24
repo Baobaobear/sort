@@ -230,7 +230,6 @@ int main(void)
     std::map<int, gen_data_func_t> gen_data_fun_map;
     std::map<int, arrar_function_t> gen_data_shuffle;
     std::map<std::string, arrar_function_t> test_func_map;
-    std::map<int, arrar_function_t> gen_data_func;
     std::map<int, int> split_size_map;
 
     init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle, split_size_map);
@@ -268,20 +267,13 @@ int main(void)
     {
         if (CONSOLE_OUTPUT)
             printf("%2d|", it_test->first);
-        if (gen_data_func.find(it_test->first) == gen_data_func.end())
+        for (int i = 0; i < (int)arr.size(); ++i)
         {
-            for (int i = 0; i < (int)arr.size(); ++i)
-            {
-                arr[i] = it_test->second(i, (int)arr.size());
-            }
-            if (gen_data_shuffle.find(it_test->first) != gen_data_shuffle.end())
-            {
-                gen_data_shuffle[it_test->first](&*arr.begin(), arr.size());
-            }
+            arr[i] = it_test->second(i, (int)arr.size());
         }
-        else
+        if (gen_data_shuffle.find(it_test->first) != gen_data_shuffle.end())
         {
-            gen_data_func[it_test->first](&*arr.begin(), (int)arr.size());
+            gen_data_shuffle[it_test->first](&*arr.begin(), arr.size());
         }
 #if TEST_TYPE_SIMPLE == 0
         for (int i = 0; i < (int)arr.size(); ++i)
@@ -417,13 +409,11 @@ int main(void)
     {
         std::string name = it_test->name;
         printf("%-12s|", name.c_str());
-        int sum = 0;
         for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
              it != gen_data_fun_map.end();
              ++it)
         {
             int v = result_map[name][it->first];
-            sum += v;
             if (v >= 0)
             {
                 printf("%5d|", v);

@@ -17,10 +17,6 @@
 #define BAO_SORT_LIB_STD11
 #endif
 
-#ifdef BAO_SORT_LIB_STD11
-#include <random>
-#endif
-
 namespace baobao
 {
 
@@ -113,14 +109,7 @@ bool check_sorted_stable(RandomAccessIterator beg, RandomAccessIterator end, Com
 
 uint32_t random_int(uint32_t max_int)
 {
-#ifdef BAO_SORT_LIB_STD11
-    std::random_device rd;
-    static std::mt19937_64 e(rd());
-    std::uniform_int_distribution<int64_t> u(0, max_int);
-    return (int)u(e);
-#else
     return (uint32_t)(baobao::util::rand_uint32() % (max_int + 1));
-#endif
 }
 
 template<class RandomAccessIterator>
@@ -227,6 +216,11 @@ namespace baobao_warp
 void baobao_insert_sort(sort_element_t arr[], size_t len)
 {
     baobao::sort::insert_sort(arr, arr + len);
+}
+
+void baobao_q_insert_sort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::q_insert_sort(arr, arr + len, std::less<sort_element_t>());
 }
 
 void baobao_heap_sort(sort_element_t arr[], size_t len)

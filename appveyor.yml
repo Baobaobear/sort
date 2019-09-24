@@ -13,4 +13,5 @@ matrix:
 build:
   verbosity: Minimal
   parallel: true
-  project: sorttest.sln
+  project:
+    - sorttest/sorttest.sln
