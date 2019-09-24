@@ -4,16 +4,20 @@ environment:
     - solution_name: sorttest\sorttest.sln
       image: Visual Studio 2015
       configuration: Release
-      platform:
-        - x86
-        - x64
+      platform: x86
+    - solution_name: sorttest\sorttest.sln
+      image: Visual Studio 2015
+      configuration: Release
+      platform: x64
     - solution_name: sorttest\sorttest17.sln
       image: Visual Studio 2017
       configuration: Release
-      platform:
-        - x86
-        - x64
-atrix:
+      platform: x86
+    - solution_name: sorttest\sorttest17.sln
+      image: Visual Studio 2017
+      configuration: Release
+      platform: x64
+matrix:
   fast_finish: false
 build_script:
   - msbuild %solution_name%
