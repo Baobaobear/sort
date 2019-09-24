@@ -1,20 +1,20 @@
 version: 1.0.{build}
 environment:
   matrix:
-    - solution_name: sorttest\sorttest.sln
-      image: Visual Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      solution_name: sorttest\sorttest.sln
       configuration: Release
       platform: x86
-    - solution_name: sorttest\sorttest.sln
-      image: Visual Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      solution_name: sorttest\sorttest.sln
       configuration: Release
       platform: x64
-    - solution_name: sorttest\sorttest17.sln
-      image: Visual Studio 2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      solution_name: sorttest\sorttest17.sln
       configuration: Release
       platform: x86
-    - solution_name: sorttest\sorttest17.sln
-      image: Visual Studio 2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      solution_name: sorttest\sorttest17.sln
       configuration: Release
       platform: x64
 matrix:
