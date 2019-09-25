@@ -216,10 +216,10 @@ void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
         test_func_map["unix_heap"] = stdsort::c_heap_sort;
         test_func_map["unix_merge"] = stdsort::c_merge_sort;
 #endif
-        test_func_map["std_heap"] = stdsort::std_heap_sort;
-        test_func_map["std_stable"] = stdsort::std_stable_sort;
+        test_func_map["std::heap"] = stdsort::std_heap_sort;
+        test_func_map["std::stable"] = stdsort::std_stable_sort;
         test_func_map["std_qsort"] = stdsort::c_quick_sort;
-        test_func_map["std_sort"] = stdsort::std_sort;
+        test_func_map["std::sort"] = stdsort::std_sort;
     }
 }
 
@@ -386,7 +386,23 @@ int main(void)
     }
 #endif
 
-    printf("\n%-12s|", "test");
+    char test_title[16] = "";
+    if (TEST_TYPE_SIMPLE == 0)
+    {
+        sprintf(test_title, "TestClass %d", TEST_CLASS_SIZE);
+    }
+    else if (TEST_TYPE_SIMPLE == 1)
+    {
+        sprintf(test_title, "int");
+    }
+    else if (TEST_TYPE_SIMPLE == 2)
+    {
+        sprintf(test_title, "double");
+    }
+    else
+    {
+    }
+    printf("\n%-12s|", test_title);
     for (std::map<int, gen_data_func_t>::iterator it = gen_data_fun_map.begin();
          it != gen_data_fun_map.end();
          ++it)
