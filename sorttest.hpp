@@ -17,6 +17,10 @@
 #define BAO_SORT_LIB_STD11
 #endif
 
+#ifndef TEST_CLASS_SIZE
+#define TEST_CLASS_SIZE 8
+#endif
+
 namespace baobao
 {
 
@@ -24,7 +28,7 @@ typedef int radix_index_t;
 
 struct TestClass
 {
-    static const int data_len = 8 - 2;
+    static const int data_len = TEST_CLASS_SIZE - 2;
     int val;
     int index;
     int data[data_len];
