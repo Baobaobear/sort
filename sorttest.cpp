@@ -257,7 +257,7 @@ int main(void)
     }
     int arr_size = base_size * base_size * 2;
     std::vector<sort_element_t> arr(arr_size + out_bound_check_size * 2);
-    baobao::util::rand_seed(time(NULL));
+    baobao::util::rand_seed((uint32_t)time(NULL));
 
 #if CONSOLE_OUTPUT == 1
     printf("Begin %d\n", arr_size);

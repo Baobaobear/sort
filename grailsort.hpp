@@ -219,10 +219,10 @@ void grail_SmartMergeWithBuffer(RandomAccessIterator beg, int *alen1, int *atype
         else grail_swap1(p0++, p2++);
     }
     if (p1 < q1) {
-        *alen1 = q1 - p1;
+        *alen1 = (int)(q1 - p1);
         while (p1 < q1) grail_swap1(--q1, --q2);
     } else {
-        *alen1 = q2 - p2;
+        *alen1 = (int)(q2 - p2);
         *atype = ftype;
     }
 }
@@ -242,7 +242,7 @@ void grail_SmartMergeWithoutBuffer(RandomAccessIterator beg, int *alen1, int *at
                 mid = p;
             }
             if (mid == end) {
-                *alen1 = mid - beg;
+                *alen1 = (int)(mid - beg);
                 return;
             }
             do {
@@ -250,7 +250,7 @@ void grail_SmartMergeWithoutBuffer(RandomAccessIterator beg, int *alen1, int *at
             } while ((mid - beg) && grail_cmp(*beg, *mid, compare) - ftype < 0);
         }
     }
-    *alen1 = end - beg; *atype = ftype;
+    *alen1 = (int)(end - beg); *atype = ftype;
 }
 
 /***** Sort With Extra Buffer *****/
@@ -275,11 +275,11 @@ void grail_SmartMergeWithXBuf(RandomAccessIterator beg, int *alen1, int *atype, 
         else *p0++ = *p2++;
     }
     if (p1 < q1) {
-        *alen1 = q1 - p1;
+        *alen1 = (int)(q1 - p1);
         while (p1 < q1) *--q2 = *--q1;
     }
     else {
-        *alen1 = q2 - p2;
+        *alen1 = (int)(q2 - p2);
         *atype = ftype;
     }
 }
@@ -509,7 +509,6 @@ void grail_LazyStableSort(RandomAccessIterator beg, RandomAccessIterator end, Co
     }
     for (int h = 2; h < L; h *= 2) {
         RandomAccessIterator p0 = beg;
-        RandomAccessIterator p1 = end - 2 * h;
         while (end - p0 >= 2 * h) {
             grail_MergeWithoutBuffer(p0, p0 + h, p0 + h + h, compare);
             p0 += 2 * h;
