@@ -18,7 +18,7 @@
 #endif
 
 #ifndef BAOBAO_SORT_SAFE_MALLOC
-#define BAOBAO_SORT_SAFE_MALLOC 0
+#define BAOBAO_SORT_SAFE_MALLOC 1
 #endif
 #include "sortlib.hpp"
 

@@ -364,13 +364,13 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end)
 template <class RandomAccessIterator, class Comp>
 void max_heapify(RandomAccessIterator arr, size_t index, size_t last, Comp compare)
 {
-    typename std::iterator_traits<RandomAccessIterator>::value_type temp = *(arr + index);
-    for (size_t son; (son = index * 2 + 1) <= last; index = son)
+    typename std::iterator_traits<RandomAccessIterator>::value_type temp = arr[index];
+    for (size_t child; (child = index << 1) <= last; index = child)
     {
-        if (son + 1 <= last && !compare(*(arr + son + 1), *(arr + son))) //arr[son] <= arr[son + 1]
-            ++son;
-        if (compare(temp, *(arr + son)))
-            *(arr + index) = *(arr + son);
+        if (child < last && compare(*(arr + child), *(arr + child + 1)))
+            ++child;
+        if (compare(temp, *(arr + child)))
+            *(arr + index) = *(arr + child);
         else
             break;
     }
@@ -380,17 +380,14 @@ void max_heapify(RandomAccessIterator arr, size_t index, size_t last, Comp compa
 template <class RandomAccessIterator, class Comp>
 void heap_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
-    diff_type len = end - beg;
-    if (len > 1)
+    std::iterator_traits<RandomAccessIterator>::difference_type length = end - beg;
+    RandomAccessIterator parr = beg - 1;
+    for (size_t i = length / 2; i > 0; --i)
+        max_heapify(parr, i, length, compare);
+    for (size_t i = length - 1; i > 0; --i)
     {
-        for (diff_type i = len / 2 - 1; i >= 0; --i)
-            baobao::sort::max_heapify(beg, i, (size_t)len - 1, compare);
-        for (diff_type i = len - 1; i > 0; --i)
-        {
-            std::swap(*beg, *(beg + i));
-            baobao::sort::max_heapify(beg, 0, (size_t)i - 1, compare);
-        }
+        std::swap(*beg, *(beg + i));
+        max_heapify(parr, 1, i, compare);
     }
 }
 
