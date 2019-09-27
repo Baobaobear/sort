@@ -380,7 +380,7 @@ void max_heapify(RandomAccessIterator arr, size_t index, size_t last, Comp compa
 template <class RandomAccessIterator, class Comp>
 void heap_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    std::iterator_traits<RandomAccessIterator>::difference_type length = end - beg;
+    typename std::iterator_traits<RandomAccessIterator>::difference_type length = end - beg;
     RandomAccessIterator parr = beg - 1;
     for (size_t i = length / 2; i > 0; --i)
         max_heapify(parr, i, length, compare);
