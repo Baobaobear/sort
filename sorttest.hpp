@@ -242,6 +242,11 @@ void baobao_merge_sort(sort_element_t arr[], size_t len)
     baobao::sort::merge_sort(arr, arr + len);
 }
 
+void baobao_merge_sort_with_buffer(sort_element_t arr[], size_t len)
+{
+    baobao::sort::merge_sort_with_buffer(arr, arr + len);
+}
+
 void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
 {
     baobao::sort::merge_sort_in_place(arr, arr + len);
@@ -256,4 +261,33 @@ void baobao_tim_sort(sort_element_t arr[], size_t len)
 {
     baobao::sort::tim_sort(arr, arr + len);
 }
+
+void baobao_indirect_qsort(sort_element_t arr[], size_t len)
+{
+    baobao::sort::indirect_qsort(arr, arr + len);
+}
+
+
+}
+
+#include "grailsort.hpp"
+
+namespace baobao_warp
+{
+
+void grail_sort(sort_element_t arr[], size_t len)
+{
+    Mrrl::GrailSort(arr, arr + len);
+}
+
+void grail_sort_buf(sort_element_t arr[], size_t len)
+{
+    Mrrl::GrailSortWithBuffer(arr, arr + len);
+}
+
+void grail_sort_dynbuf(sort_element_t arr[], size_t len)
+{
+    Mrrl::GrailSortWithDynBuffer(arr, arr + len);
+}
+
 }

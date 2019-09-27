@@ -17,6 +17,14 @@ environment:
       solution_name: sorttest\sorttest17.sln
       configuration: Release
       platform: x64
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      solution_name: sorttest\sorttest19.sln
+      configuration: Release
+      platform: x86
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      solution_name: sorttest\sorttest19.sln
+      configuration: Release
+      platform: x64
 matrix:
   fast_finish: false
 build_script:

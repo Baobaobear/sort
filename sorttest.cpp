@@ -206,9 +206,17 @@ void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
         test_func_map["bao_heap"] = baobao_warp::baobao_heap_sort;
         test_func_map["bao_shell"] = baobao_warp::baobao_shell_sort;
         test_func_map["bao_merge"] = baobao_warp::baobao_merge_sort;
+        test_func_map["bao_mer_buf"] = baobao_warp::baobao_merge_sort_with_buffer;
         test_func_map["bao_mer_in"] = baobao_warp::baobao_merge_sort_in_place;
         test_func_map["bao_qsort"] = baobao_warp::baobao_quick_sort;
+        //test_func_map["bao_indir"] = baobao_warp::baobao_indirect_qsort;
         test_func_map["bao_tim"] = baobao_warp::baobao_tim_sort;
+    }
+    // https://github.com/Mrrl/GrailSort
+    {
+        test_func_map["grail_in"] = baobao_warp::grail_sort;
+        test_func_map["grail_buf"] = baobao_warp::grail_sort_buf;
+        test_func_map["grail_dyn"] = baobao_warp::grail_sort_dynbuf;
     }
     // std function
     {
@@ -235,9 +243,14 @@ int main(void)
     init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle, split_size_map);
     init_test_func_map(test_func_map);
 
-    int base_size = 1000 * (!!TEST_TYPE_SIMPLE + 1);
+    int base_size = 1000;
+    if (TEST_TYPE_SIMPLE)
+    {
+        base_size += base_size / 2;
+    }
     int arr_size = base_size * base_size * 2;
     std::vector<sort_element_t> arr(arr_size);
+    baobao::util::rand_seed(time(NULL));
 
 #if CONSOLE_OUTPUT == 1
     printf("Begin %u\n", (unsigned)arr.size());
