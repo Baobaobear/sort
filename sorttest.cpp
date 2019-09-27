@@ -2,6 +2,10 @@
 // author:      baobaobear
 // create date: 2019-09-20
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #ifndef TEST_TYPE_SIMPLE
 #define TEST_TYPE_SIMPLE 1 // 0 TestClass; 1 int; 2 double;
 #define CONSOLE_OUTPUT 1
@@ -239,6 +243,9 @@ int main(void)
     std::map<int, arrar_function_t> gen_data_shuffle;
     std::map<std::string, arrar_function_t> test_func_map;
     std::map<int, int> split_size_map;
+    const size_t out_bound_check_size = 128;
+    const int out_bound_check_head_value = 0xf0f0f0f;
+    const int out_bound_check_tail_value = -0xf0f0f0f;
 
     init_gen_data_fun_map(gen_data_fun_map, gen_data_shuffle, split_size_map);
     init_test_func_map(test_func_map);
@@ -249,11 +256,11 @@ int main(void)
         base_size += base_size / 2;
     }
     int arr_size = base_size * base_size * 2;
-    std::vector<sort_element_t> arr(arr_size);
+    std::vector<sort_element_t> arr(arr_size + out_bound_check_size * 2);
     baobao::util::rand_seed(time(NULL));
 
 #if CONSOLE_OUTPUT == 1
-    printf("Begin %u\n", (unsigned)arr.size());
+    printf("Begin %d\n", arr_size);
 
     printf(" -|");
     for (std::map<std::string, arrar_function_t>::iterator it = test_func_map.begin();
@@ -280,18 +287,23 @@ int main(void)
     {
         if (CONSOLE_OUTPUT)
             printf("%2d|", it_test->first);
-        for (int i = 0; i < (int)arr.size(); ++i)
+        for (size_t i = 0; i < out_bound_check_size; ++i)
         {
-            arr[i] = it_test->second(i, (int)arr.size());
+            arr[i] = out_bound_check_head_value;
+            arr[arr.size() - out_bound_check_size + i] = out_bound_check_tail_value;
+        }
+        for (int i = 0; i < (int)arr_size; ++i)
+        {
+            arr[i + out_bound_check_size] = it_test->second(i, arr_size);
         }
         if (gen_data_shuffle.find(it_test->first) != gen_data_shuffle.end())
         {
-            gen_data_shuffle[it_test->first](&*arr.begin(), arr.size());
+            gen_data_shuffle[it_test->first](&*(arr.begin() + out_bound_check_size), arr_size);
         }
 #if TEST_TYPE_SIMPLE == 0
-        for (int i = 0; i < (int)arr.size(); ++i)
+        for (int i = 0; i < (int)arr_size; ++i)
         {
-            arr[i].index = i;
+            arr[i + out_bound_check_size].index = i;
         }
 #endif
         for (std::map<std::string, arrar_function_t>::iterator it = test_func_map.begin();
@@ -304,20 +316,20 @@ int main(void)
             if (split_size_map.find(it_test->first) != split_size_map.end())
             {
                 int split_cnt = split_size_map[it_test->first];
-                int last_size = (int)arr.size() - split_cnt;
+                int last_size = arr_size - split_cnt;
                 std::vector<sort_element_t> arr_c2 = arr;
                 t = get_time();
                 for (int i = 0; i < last_size; i += split_cnt)
                 {
-                    it->second(&*arr_c.begin() + i, split_cnt);
+                    it->second(&*arr_c.begin() + out_bound_check_size + i, split_cnt);
                 }
                 for (int i = 0; i < last_size; i += split_cnt)
                 {
-                    it->second(&*arr_c2.begin() + i, split_cnt);
+                    it->second(&*arr_c2.begin() + out_bound_check_size + i, split_cnt);
                 }
                 res_ms = (int)get_time_diff(t, get_time());
 
-                //for (size_t i = 0; i < arr.size(); i++) // avoid optimize arr_c2
+                //for (size_t i = 0; i < arr_size; i++) // avoid optimize arr_c2
                 //{
                 //    if (arr_c[i] < arr_c2[i] || arr_c2[i] < arr_c[i])
                 //    {
@@ -328,7 +340,7 @@ int main(void)
             else
             {
                 t = get_time();
-                it->second(&*arr_c.begin(), (int)arr_c.size());
+                it->second(&*(arr_c.begin() + out_bound_check_size), arr_size);
                 res_ms = (int)get_time_diff(t, get_time());
             }
             if (CONSOLE_OUTPUT)
@@ -336,19 +348,35 @@ int main(void)
 
             if (split_size_map.find(it_test->first) == split_size_map.end())
             {
-                if (!baobao::check_sorted(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
+                for (size_t i = 0; i < out_bound_check_size; ++i)
                 {
-                    correct = false;
-                }
-#if TEST_TYPE_SIMPLE == 0
-                else
-                {
-                    if (!baobao::check_sorted_stable(arr_c.begin(), arr_c.end(), std::less<sort_element_t>()))
+                    if (!(arr[i] == out_bound_check_head_value))
                     {
-                        unstable_map[it->first] = 1;
+                        correct = false;
+                        break;
+                    }
+                    if (!(arr[arr.size() - out_bound_check_size + i] == out_bound_check_tail_value))
+                    {
+                        correct = false;
+                        break;
                     }
                 }
+                if (correct)
+                {
+                    if (!baobao::check_sorted(arr_c.begin() + out_bound_check_size, arr_c.end() - out_bound_check_size, std::less<sort_element_t>()))
+                    {
+                        correct = false;
+                    }
+#if TEST_TYPE_SIMPLE == 0
+                    else
+                    {
+                        if (!baobao::check_sorted_stable(arr_c.begin() + out_bound_check_size, arr_c.end() - out_bound_check_size, std::less<sort_element_t>()))
+                        {
+                            unstable_map[it->first] = 1;
+                        }
+                    }
 #endif
+                }
             }
             if (correct)
             {
@@ -462,7 +490,7 @@ int main(void)
         }
         printf("%5d|\n", (int)(it_test->score / gen_data_fun_map.size()));
     }
-    printf("\n%u END\n", (unsigned)arr.size());
+    printf("\n%d END\n", arr_size);
     fflush(stdout);
 
     return 0;

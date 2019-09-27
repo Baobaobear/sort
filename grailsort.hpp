@@ -111,8 +111,8 @@ RandomAccessIterator grail_BinSearchLeft(RandomAccessIterator beg, RandomAccessI
     while (a < b - 1)
     {
         c = a + ((b - a) >> 1);
-        if (!compare(*c, *key)) b = c;
-        else a = c;
+        if (compare(*c, *key)) a = c;
+        else b = c;
     }
     return b;
 }
@@ -503,14 +503,14 @@ void grail_SortIns(RandomAccessIterator beg, RandomAccessIterator end, Comp comp
 
 template <class RandomAccessIterator, class Comp>
 void grail_LazyStableSort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare) {
-    int L = end - beg;
+    int L = (int)(end - beg);
     for (RandomAccessIterator m = beg + 1; m < end; m += 2) {
         if (compare(*m, *(m - 1))) grail_swap1(m - 1, m);
     }
     for (int h = 2; h < L; h *= 2) {
         RandomAccessIterator p0 = beg;
         RandomAccessIterator p1 = end - 2 * h;
-        while (p0 <= p1) {
+        while (end - p0 >= 2 * h) {
             grail_MergeWithoutBuffer(p0, p0 + h, p0 + h + h, compare);
             p0 += 2 * h;
         }
@@ -589,7 +589,7 @@ void grail_commonSort(RandomAccessIterator beg, RandomAccessIterator end, Random
 
     lblock = 1;
     while (lblock*lblock < end - beg) lblock *= 2;
-    nkeys = (end - beg - 1) / lblock + 1;
+    nkeys = (int)((end - beg - 1) / lblock + 1);
     findkeys = (int)(grail_FindKeys(beg, end, beg + nkeys + lblock, compare) - beg);
     havebuf = true;
     if (findkeys < nkeys + lblock) {
@@ -619,7 +619,7 @@ void grail_commonSort(RandomAccessIterator beg, RandomAccessIterator end, Random
             else {
                 int nk = 1;
                 double s = (double)cbuf * findkeys / 2;
-                while (nk < nkeys && s > 0) {
+                while (nk < nkeys && s > 0.9) {
                     nk *= 2; s /= 8;
                 }
                 lb = (2 * cbuf) / nk;
@@ -671,7 +671,9 @@ void GrailSortWithDynBuffer(RandomAccessIterator beg, RandomAccessIterator end, 
     while (L * L < end - beg) L *= 2;
     value_type * ExtBuf = new value_type[L];
     if (ExtBuf == NULL)
+    {
         GrailSortWithBuffer(beg, end, compare);
+    }
     else
     {
         grail_commonSort(beg, end, ExtBuf, L, compare);

@@ -78,6 +78,11 @@ struct TestClass
         return *this;
     }
 
+    bool operator == (int v) const
+    {
+        return val == v;
+    }
+
     radix_index_t get_index() const
     {
         return val;
