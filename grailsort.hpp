@@ -66,7 +66,6 @@ inline void grail_swapN(RandomAccessIterator a, RandomAccessIterator b, size_t n
 template <class RandomAccessIterator>
 void swap_2_part_with_same_length(RandomAccessIterator beg, RandomAccessIterator mid)
 {
-    typename std::iterator_traits<RandomAccessIterator>::value_type t;
     for (RandomAccessIterator l = beg, r = mid; l < mid; ++l, ++r)
     {
         std::swap(*l, *r);
@@ -134,7 +133,6 @@ RandomAccessIterator grail_BinSearchRight(RandomAccessIterator beg, RandomAccess
 template <class RandomAccessIterator, class Comp>
 RandomAccessIterator grail_FindKeys(RandomAccessIterator beg, RandomAccessIterator end, RandomAccessIterator nkeys, Comp compare)
 {
-    int len = (int)(end - beg);
     RandomAccessIterator h0 = beg, u = beg + 1; // first key is always here
     int h = 1;
     while (u < end && h < nkeys - beg)
@@ -172,7 +170,6 @@ void grail_MergeWithoutBuffer(RandomAccessIterator beg, RandomAccessIterator mid
     else {
         while (end - mid) {
             RandomAccessIterator p = grail_BinSearchRight(beg, mid, end - 1, compare);
-            int h = p - beg;
             if (p != mid) {
                 grail_rotate(p, mid, end);
                 end -= mid - p;
@@ -294,42 +291,41 @@ void grail_SmartMergeWithXBuf(RandomAccessIterator beg, int *alen1, int *atype, 
 // llast=0 requires nblock2=0 (no irregular blocks). llast>0, nblock2=0 is possible.
 template <class RandomAccessIterator, class Comp>
 void grail_MergeBuffersLeftWithXBuf(RandomAccessIterator keys, RandomAccessIterator midkey, RandomAccessIterator arr, int nblock, int lblock, int nblock2, int llast, Comp compare) {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    int l, prest, lrest, frest, pidx, cidx, fnext, plast;
+    RandomAccessIterator prest, pidx;
+    int lrest, frest;
 
     if (nblock == 0) {
-        l = nblock2*lblock;
+        int l = nblock2*lblock;
         grail_MergeLeftWithXBuf(arr, arr + l, arr + l + llast, arr - lblock, compare);
         return;
     }
 
     lrest = lblock;
     frest = compare(*keys, *midkey) ? 0 : 1;
-    pidx = lblock;
-    for (cidx = 1;cidx < nblock;cidx++, pidx += lblock) {
+    pidx = arr + lblock;
+    for (int cidx = 1; cidx < nblock;cidx++, pidx += lblock) {
         prest = pidx - lrest;
-        fnext = compare(*(keys + cidx), *midkey) ? 0 : 1;
+        int fnext = compare(*(keys + cidx), *midkey) ? 0 : 1;
         if (fnext == frest) {
-            //memcpy(arr + prest - lblock, arr + prest, lrest * sizeof(value_type)); // TODO
+            //memcpy(prest - lblock, prest, lrest * sizeof(value_type)); // TODO
             for (int i = 0; i < lrest; ++i)
             {
-                *(arr + prest - lblock + i) = *(arr + prest + i);
+                *(prest - lblock + i) = *(prest + i);
             }
             prest = pidx;
             lrest = lblock;
         }
         else {
-            grail_SmartMergeWithXBuf(arr + prest, &lrest, &frest, arr + prest + lrest + lblock, arr + prest - lblock, compare);
+            grail_SmartMergeWithXBuf(prest, &lrest, &frest, prest + lrest + lblock, prest - lblock, compare);
         }
     }
     prest = pidx - lrest;
     if (llast) {
-        plast = pidx + lblock*nblock2;
         if (frest) {
-            //memcpy(arr + prest - lblock, arr + prest, lrest * sizeof(value_type)); // TODO
+            //memcpy(prest - lblock, prest, lrest * sizeof(value_type)); // TODO
             for (int i = 0; i < lrest; ++i)
             {
-                *(arr + prest - lblock + i) = *(arr + prest + i);
+                *(prest - lblock + i) = *(prest + i);
             }
             prest = pidx;
             lrest = lblock*nblock2;
@@ -338,13 +334,13 @@ void grail_MergeBuffersLeftWithXBuf(RandomAccessIterator keys, RandomAccessItera
         else {
             lrest += lblock*nblock2;
         }
-        grail_MergeLeftWithXBuf(arr + prest, arr + prest + lrest, arr + prest + lrest + llast, arr + prest - lblock, compare);
+        grail_MergeLeftWithXBuf(prest, prest + lrest, prest + lrest + llast, prest - lblock, compare);
     }
     else {
-        //memcpy(arr + prest - lblock, arr + prest, lrest * sizeof(value_type));
+        //memcpy(prest - lblock, prest, lrest * sizeof(value_type));
         for (int i = 0; i < lrest; ++i)
         {
-            *(arr + prest - lblock + i) = *(arr + prest + i);
+            *(prest - lblock + i) = *(prest + i);
         }
     }
 }
@@ -356,7 +352,6 @@ void grail_MergeBuffersLeftWithXBuf(RandomAccessIterator keys, RandomAccessItera
 // output: first K elements are buffer, blocks 2*K and last subblock sorted
 template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
 void grail_BuildBlocks(RandomAccessIterator beg, RandomAccessIterator end, int K, RandomAccessBufferIterator extbuf, int LExtBuf, Comp compare) {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     int h, restk, kbuf;
     kbuf = K < LExtBuf ? K : LExtBuf;
     while (kbuf&(kbuf - 1)) kbuf &= kbuf - 1;  // max power or 2 - just in case
@@ -437,10 +432,11 @@ void grail_BuildBlocks(RandomAccessIterator beg, RandomAccessIterator end, int K
 // llast=0 requires nblock2=0 (no irregular blocks). llast>0, nblock2=0 is possible.
 template <class RandomAccessIterator, class Comp>
 void grail_MergeBuffersLeft(RandomAccessIterator keys, RandomAccessIterator midkey, RandomAccessIterator arr, int nblock, int lblock, bool havebuf, int nblock2, int llast, Comp compare) {
-    int l, prest, lrest, frest, pidx, cidx, fnext, plast;
+    RandomAccessIterator prest, pidx;
+    int lrest, frest;
 
     if (nblock == 0) {
-        l = nblock2*lblock;
+        int l = nblock2*lblock;
         if (havebuf) grail_MergeLeft(arr, arr + l, arr + l + llast, arr - lblock, compare);
         else grail_MergeWithoutBuffer(arr, arr + l, arr + l + llast, compare);
         return;
@@ -448,30 +444,29 @@ void grail_MergeBuffersLeft(RandomAccessIterator keys, RandomAccessIterator midk
 
     lrest = lblock;
     frest = compare(*keys, *midkey) ? 0 : 1;
-    pidx = lblock;
-    for (cidx = 1;cidx < nblock;cidx++, pidx += lblock) {
+    pidx = arr + lblock;
+    for (int cidx = 1; cidx < nblock; cidx++, pidx += lblock) {
         prest = pidx - lrest;
-        fnext = compare(*(keys + cidx), *midkey) ? 0 : 1;
+        int fnext = compare(*(keys + cidx), *midkey) ? 0 : 1;
         if (fnext == frest) {
-            if (havebuf) grail_swapN(arr + prest - lblock, arr + prest, lrest);
+            if (havebuf) grail_swapN(prest - lblock, prest, lrest);
             prest = pidx;
             lrest = lblock;
         }
         else {
             if (havebuf) {
-                grail_SmartMergeWithBuffer(arr + prest, &lrest, &frest, arr + prest + lrest + lblock, arr + prest - lblock, compare);
+                grail_SmartMergeWithBuffer(prest, &lrest, &frest, prest + lrest + lblock, prest - lblock, compare);
             }
             else {
-                grail_SmartMergeWithoutBuffer(arr + prest, &lrest, &frest, arr + prest + lrest + lblock, compare);
+                grail_SmartMergeWithoutBuffer(prest, &lrest, &frest, prest + lrest + lblock, compare);
             }
 
         }
     }
     prest = pidx - lrest;
     if (llast) {
-        plast = pidx + lblock*nblock2;
         if (frest) {
-            if (havebuf) grail_swapN(arr + prest - lblock, arr + prest, lrest);
+            if (havebuf) grail_swapN(prest - lblock, prest, lrest);
             prest = pidx;
             lrest = lblock*nblock2;
             frest = 0;
@@ -479,11 +474,11 @@ void grail_MergeBuffersLeft(RandomAccessIterator keys, RandomAccessIterator midk
         else {
             lrest += lblock*nblock2;
         }
-        if (havebuf) grail_MergeLeft(arr + prest, arr + prest + lrest, arr + prest + lrest + llast, arr + prest - lblock, compare);
-        else grail_MergeWithoutBuffer(arr + prest, arr + prest + lrest, arr + prest + lrest + llast, compare);
+        if (havebuf) grail_MergeLeft(prest, prest + lrest, prest + lrest + llast, prest - lblock, compare);
+        else grail_MergeWithoutBuffer(prest, prest + lrest, prest + lrest + llast, compare);
     }
     else {
-        if (havebuf) grail_swapN(arr + prest, arr + (prest - lblock), lrest);
+        if (havebuf) grail_swapN(prest, prest - lblock, lrest);
     }
 }
 
@@ -527,13 +522,10 @@ void grail_LazyStableSort(RandomAccessIterator beg, RandomAccessIterator end, Co
 // LL and nkeys are powers of 2. (2*LL/lblock) keys are guarantied
 template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
 void grail_CombineBlocks(RandomAccessIterator keys, RandomAccessIterator beg, RandomAccessIterator end, int LL, int lblock, bool havebuf, RandomAccessBufferIterator xbuf, Comp compare) {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    int M, nkeys, b, NBlk, midkey, lrest, u, p, v, nbl2, llast;
     RandomAccessIterator arr1;
 
-    M = (end - beg) / (2 * LL);
-    lrest = (end - beg) % (2 * LL);
-    nkeys = (2 * LL) / lblock;
+    int M = (int)((end - beg) / (2 * LL));
+    int lrest = (int)((end - beg) % (2 * LL));
     if (lrest <= LL) {
         end -= lrest;
         lrest = 0;
@@ -546,15 +538,15 @@ void grail_CombineBlocks(RandomAccessIterator keys, RandomAccessIterator beg, Ra
             *(xbuf + i) = *(beg - lblock + i);
         }
     }
-    for (b = 0;b <= M;b++) {
+    for (int b = 0; b <= M; b++) {
         if (b == M && lrest == 0) break;
         arr1 = beg + b * 2 * LL;
-        NBlk = (b == M ? lrest : 2 * LL) / lblock;
+        int NBlk = (b == M ? lrest : 2 * LL) / lblock;
         grail_SortIns(keys, keys + NBlk + (b == M ? 1 : 0), compare);
-        midkey = LL / lblock;
-        for (u = 1;u < NBlk;u++) {
-            p = u - 1;
-            for (v = u;v < NBlk;v++) {
+        int midkey = LL / lblock;
+        for (int u = 1; u < NBlk; u++) {
+            int p = u - 1;
+            for (int v = u; v < NBlk; v++) {
                 if (compare(*(arr1 + v*lblock), *(arr1 + p*lblock)) ||
                     (grail_lesseq(*(arr1 + v*lblock), *(arr1 + p*lblock), compare) && compare(*(keys + v), *(keys + p))))
                     p = v;
@@ -565,7 +557,7 @@ void grail_CombineBlocks(RandomAccessIterator keys, RandomAccessIterator beg, Ra
                 if (midkey == u - 1 || midkey == p) midkey ^= (u - 1) ^ p;
             }
         }
-        nbl2 = llast = 0;
+        int nbl2 = 0, llast = 0;
         if (b == M) llast = lrest%lblock;
         if (llast != 0) {
             while (nbl2 < NBlk && compare(*(arr1 + NBlk*lblock), *(arr1 + (NBlk - nbl2 - 1)*lblock))) nbl2++;
@@ -587,9 +579,8 @@ void grail_CombineBlocks(RandomAccessIterator keys, RandomAccessIterator beg, Ra
 
 template <class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
 void grail_commonSort(RandomAccessIterator beg, RandomAccessIterator end, RandomAccessBufferIterator extbuf, int LExtBuf, Comp compare) {
-    int lblock, nkeys, findkeys, cbuf, lb, nk;
-    bool havebuf, chavebuf;
-    long long s;
+    int lblock, nkeys, findkeys;
+    bool havebuf;
 
     if (end - beg < 16) {
         grail_SortIns(beg, end, compare);
@@ -612,23 +603,23 @@ void grail_commonSort(RandomAccessIterator beg, RandomAccessIterator end, Random
         lblock = 0;
     }
     RandomAccessIterator ptr = beg + lblock + nkeys;
-    cbuf = havebuf ? lblock : nkeys;
+    int cbuf = havebuf ? lblock : nkeys;
     if (havebuf) grail_BuildBlocks(ptr, end, cbuf, extbuf, LExtBuf, compare);
     else grail_BuildBlocks(ptr, end, cbuf, (RandomAccessBufferIterator)NULL, 0, compare);
 
     // 2*cbuf are built
     while (end - ptr > (cbuf *= 2)) {
-        lb = lblock;
-        chavebuf = havebuf;
+        int lb = lblock;
+        bool chavebuf = havebuf;
         if (!havebuf) {
             if (nkeys > 4 && nkeys / 8 * nkeys >= cbuf) {
                 lb = nkeys / 2;
                 chavebuf = true;
             }
             else {
-                nk = 1;
-                s = (long long)cbuf*findkeys / 2;
-                while (nk < nkeys && s != 0) {
+                int nk = 1;
+                double s = (double)cbuf * findkeys / 2;
+                while (nk < nkeys && s > 0) {
                     nk *= 2; s /= 8;
                 }
                 lb = (2 * cbuf) / nk;

@@ -521,8 +521,6 @@ void merge_2_part(RandomAccessBufferIterator buf, RandomAccessIterator beg, Rand
 template <class RandomAccessIterator>
 void swap_2_part_with_same_length(RandomAccessIterator beg, RandomAccessIterator mid)
 {
-    typename std::iterator_traits<RandomAccessIterator>::value_type t;
-
     for (RandomAccessIterator l = beg, r = mid; l < mid; ++l, ++r)
     {
         std::swap(*l, *r);
