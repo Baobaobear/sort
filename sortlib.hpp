@@ -16,7 +16,9 @@
     #include <cstdint>
     #include <type_traits>
 #else
-    #define BAOBAO_SORT_SAFE_MALLOC 0
+    #ifndef BAOBAO_SORT_SAFE_MALLOC
+        #define BAOBAO_SORT_SAFE_MALLOC 0
+    #endif
     typedef unsigned int uint32_t;
     typedef int int32_t;
 #endif
@@ -468,7 +470,7 @@ void merge_2_part_force(RandomAccessBufferIterator buf, RandomAccessIterator beg
             *t = *s;
         }
 #else
-        memcpy(buf, &*beg, (char*)&*mid - (char*)&*beg);
+        memcpy((char*)buf, (char*)&*beg, (char*)&*mid - (char*)&*beg);
 #endif
 
         RandomAccessBufferIterator start1 = buf, start1_end = buf + (mid - beg);
@@ -505,7 +507,7 @@ void merge_2_part_force(RandomAccessBufferIterator buf, RandomAccessIterator beg
             *t = *s;
         }
 #else
-        memcpy(buf, &*mid, (char*)&*end - (char*)&*mid);
+        memcpy((char*)buf, (char*)&*mid, (char*)&*end - (char*)&*mid);
 #endif
         RandomAccessBufferIterator start1 = buf + (end - mid) - 1, start1_end = buf;
         RandomAccessIterator start2 = mid - 1, k = end;
@@ -774,7 +776,7 @@ RandomAccessIterator intro_sort_partition(RandomAccessIterator beg, RandomAccess
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = baobao::util::fake_rand_simple();
     diff_type n = end - beg, h = (n - 1) / 2, w = h;
-    baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + rnd % w + h), compare);
+    baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h), compare);
 
     typename std::iterator_traits<RandomAccessIterator>::value_type pivot = *r;
     while (1)

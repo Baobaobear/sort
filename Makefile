@@ -22,7 +22,7 @@ demo2: sorttest.cpp sortlib.hpp sorttest.hpp
 	$(CXX) $(CFLAGS11) sorttest.cpp -o demo
 
 benchmark0: sorttest.cpp sortlib.hpp sorttest.hpp
-	$(CXX) $(CFLAGS03NOWALL) $(BENCHMARKFILE) -D TEST_TYPE_SIMPLE=0 -o benchmark0
+	$(CXX) $(CFLAGS03) $(BENCHMARKFILE) -D TEST_TYPE_SIMPLE=0 -o benchmark0
 
 benchmark1: sorttest.cpp sortlib.hpp sorttest.hpp
 	$(CXX) $(CFLAGS03) $(BENCHMARKFILE) -D TEST_TYPE_SIMPLE=1 -o benchmark1
