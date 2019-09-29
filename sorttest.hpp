@@ -247,9 +247,19 @@ void baobao_merge_sort(sort_element_t arr[], size_t len)
     baobao::sort::merge_sort(arr, arr + len);
 }
 
+void baobao_merge_sort_s(sort_element_t arr[], size_t len)
+{
+    baobao::sort::merge_sort_s(arr, arr + len);
+}
+
 void baobao_merge_sort_with_buffer(sort_element_t arr[], size_t len)
 {
     baobao::sort::merge_sort_with_buffer(arr, arr + len);
+}
+
+void baobao_merge_sort_with_buffer_s(sort_element_t arr[], size_t len)
+{
+    baobao::sort::merge_sort_with_buffer_s(arr, arr + len);
 }
 
 void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
@@ -265,6 +275,11 @@ void baobao_quick_sort(sort_element_t arr[], size_t len)
 void baobao_tim_sort(sort_element_t arr[], size_t len)
 {
     baobao::sort::tim_sort(arr, arr + len);
+}
+
+void baobao_tim_sort_s(sort_element_t arr[], size_t len)
+{
+    baobao::sort::tim_sort_s(arr, arr + len);
 }
 
 void baobao_indirect_qsort(sort_element_t arr[], size_t len)
