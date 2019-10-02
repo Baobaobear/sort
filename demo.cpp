@@ -54,7 +54,7 @@ int main(void)
     print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());
-    baobao::sort::intro_sort(arr.begin(), arr.end());
+    baobao::sort::quick_sort(arr.begin(), arr.end());
     print_check_sorted(arr.begin(), arr.end());
 
     baobao::random_shuffle(arr.begin(), arr.end());

@@ -13,13 +13,6 @@
 #define CONSOLE_OUTPUT 0
 #endif
 
-#if TEST_TYPE_SIMPLE > 0 && !defined(BAOBAO_SORT_SAFE_MALLOC)
-#define BAOBAO_SORT_SAFE_MALLOC 0
-#endif
-
-#ifndef BAOBAO_SORT_SAFE_MALLOC
-#define BAOBAO_SORT_SAFE_MALLOC 1
-#endif
 #include "sortlib.hpp"
 
 #include "sorttest.hpp"
@@ -204,23 +197,27 @@ static void init_gen_data_fun_map(
 
 void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
 {
-    // baobao's function
+    // Baobaobear's function
     {
         //test_func_map["bao_insert"] = baobao_warp::baobao_insert_sort;
         test_func_map["bao_heap"] = baobao_warp::baobao_heap_sort;
         test_func_map["bao_shell"] = baobao_warp::baobao_shell_sort;
         test_func_map["bao_merge"] = baobao_warp::baobao_merge_sort;
-        test_func_map["bao_mer_buf"] = baobao_warp::baobao_merge_sort_with_buffer;
+        test_func_map["bao_mer_buf"] = baobao_warp::baobao_merge_sort_buffer;
         test_func_map["bao_mer_in"] = baobao_warp::baobao_merge_sort_in_place;
         test_func_map["bao_qsort"] = baobao_warp::baobao_quick_sort;
-        //test_func_map["bao_indir"] = baobao_warp::baobao_indirect_qsort;
+        test_func_map["bao_indir"] = baobao_warp::baobao_indirect_qsort;
         test_func_map["bao_tim"] = baobao_warp::baobao_tim_sort;
     }
     // https://github.com/Mrrl/GrailSort
     {
-        test_func_map["grail_in"] = baobao_warp::grail_sort;
-        test_func_map["grail_buf"] = baobao_warp::grail_sort_buf;
+        //test_func_map["grail_in"] = baobao_warp::grail_sort_in_place;
+        //test_func_map["grail_buf"] = baobao_warp::grail_sort_buf;
         test_func_map["grail_dyn"] = baobao_warp::grail_sort_dynbuf;
+    }
+    // https://github.com/BonzaiThePenguin/WikiSort
+    {
+        test_func_map["wiki_sort"] = baobao_warp::wiki_sort;
     }
     // std function
     {

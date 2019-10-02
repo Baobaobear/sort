@@ -252,14 +252,14 @@ void baobao_merge_sort_s(sort_element_t arr[], size_t len)
     baobao::sort::merge_sort_s(arr, arr + len);
 }
 
-void baobao_merge_sort_with_buffer(sort_element_t arr[], size_t len)
+void baobao_merge_sort_buffer(sort_element_t arr[], size_t len)
 {
-    baobao::sort::merge_sort_with_buffer(arr, arr + len);
+    baobao::sort::merge_sort_buffer(arr, arr + len);
 }
 
-void baobao_merge_sort_with_buffer_s(sort_element_t arr[], size_t len)
+void baobao_merge_sort_buffer_s(sort_element_t arr[], size_t len)
 {
-    baobao::sort::merge_sort_with_buffer_s(arr, arr + len);
+    baobao::sort::merge_sort_buffer_s(arr, arr + len);
 }
 
 void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
@@ -269,7 +269,7 @@ void baobao_merge_sort_in_place(sort_element_t arr[], size_t len)
 
 void baobao_quick_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::intro_sort(arr, arr + len);
+    baobao::sort::quick_sort(arr, arr + len);
 }
 
 void baobao_tim_sort(sort_element_t arr[], size_t len)
@@ -291,23 +291,29 @@ void baobao_indirect_qsort(sort_element_t arr[], size_t len)
 }
 
 #include "grailsort.hpp"
+#include "wikisort.hpp"
 
 namespace baobao_warp
 {
 
-void grail_sort(sort_element_t arr[], size_t len)
+void grail_sort_in_place(sort_element_t arr[], size_t len)
 {
-    Mrrl::GrailSort(arr, arr + len);
+    Mrrl::grail_sort_in_place(arr, arr + len);
 }
 
 void grail_sort_buf(sort_element_t arr[], size_t len)
 {
-    Mrrl::GrailSortWithBuffer(arr, arr + len);
+    Mrrl::grail_sort_buffer(arr, arr + len);
 }
 
 void grail_sort_dynbuf(sort_element_t arr[], size_t len)
 {
-    Mrrl::GrailSortWithDynBuffer(arr, arr + len);
+    Mrrl::grail_sort(arr, arr + len);
+}
+
+void wiki_sort(sort_element_t arr[], size_t len)
+{
+    Wiki::Sort(arr, arr + len);
 }
 
 }

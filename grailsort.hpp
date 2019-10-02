@@ -638,32 +638,32 @@ void grail_commonSort(RandomAccessIterator beg, RandomAccessIterator end, Random
 }
 
 template <class RandomAccessIterator, class Comp>
-void GrailSort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare) {
+void grail_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Comp compare) {
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     value_type* buf = NULL;
     grail_commonSort(beg, end, buf, 0, compare);
 }
 
 template <class RandomAccessIterator>
-void GrailSort(RandomAccessIterator beg, RandomAccessIterator end) {
-    GrailSort(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
+void grail_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end) {
+    grail_sort_in_place(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
 }
 
 template <class RandomAccessIterator, class Comp>
-void GrailSortWithBuffer(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+void grail_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typename std::iterator_traits<RandomAccessIterator>::value_type ExtBuf[GRAIL_EXT_BUFFER_LENGTH];
     grail_commonSort(beg, end, ExtBuf, GRAIL_EXT_BUFFER_LENGTH, compare);
 }
 
 template <class RandomAccessIterator>
-void GrailSortWithBuffer(RandomAccessIterator beg, RandomAccessIterator end)
+void grail_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end)
 {
-    GrailSortWithBuffer(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
+    grail_sort_buffer(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
 }
 
 template <class RandomAccessIterator, class Comp>
-void GrailSortWithDynBuffer(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+void grail_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     int L = 1;
@@ -671,7 +671,7 @@ void GrailSortWithDynBuffer(RandomAccessIterator beg, RandomAccessIterator end, 
     value_type * ExtBuf = new value_type[L];
     if (ExtBuf == NULL)
     {
-        GrailSortWithBuffer(beg, end, compare);
+        grail_sort_buffer(beg, end, compare);
     }
     else
     {
@@ -681,9 +681,9 @@ void GrailSortWithDynBuffer(RandomAccessIterator beg, RandomAccessIterator end, 
 }
 
 template <class RandomAccessIterator>
-void GrailSortWithDynBuffer(RandomAccessIterator beg, RandomAccessIterator end)
+void grail_sort(RandomAccessIterator beg, RandomAccessIterator end)
 {
-    GrailSortWithDynBuffer(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
+    grail_sort(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
 }
 
 } // namespace Mrrl

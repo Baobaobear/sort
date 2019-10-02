@@ -16,18 +16,8 @@
     #include <cstdint>
     #include <type_traits>
 #else
-    #ifndef BAOBAO_SORT_SAFE_MALLOC
-        #define BAOBAO_SORT_SAFE_MALLOC 0
-    #endif
     typedef unsigned int uint32_t;
     typedef int int32_t;
-#endif
-
-// BAOBAO_SORT_SAFE_MALLOC
-// set to 1 means it allocated with new/delete
-// 0 will be faster, but not safe
-#ifndef BAOBAO_SORT_SAFE_MALLOC
-#define BAOBAO_SORT_SAFE_MALLOC 1
 #endif
 
 namespace baobao
@@ -786,14 +776,14 @@ void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Com
 
 // stable sort
 template <class RandomAccessIterator>
-void merge_sort_with_buffer(RandomAccessIterator beg, RandomAccessIterator end)
+void merge_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end)
 {
     merge_sort_in_place<false>(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>(), true);
 }
 
 // stable sort
 template <class RandomAccessIterator>
-void merge_sort_with_buffer_s(RandomAccessIterator beg, RandomAccessIterator end)
+void merge_sort_buffer_s(RandomAccessIterator beg, RandomAccessIterator end)
 {
     merge_sort_in_place<true>(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>(), true);
 }
@@ -806,7 +796,7 @@ void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end)
 }
 
 template <class RandomAccessIterator, class Comp>
-RandomAccessIterator intro_sort_partition(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, bool& swaped)
+RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, bool& swaped)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
     RandomAccessIterator l = beg, r = end - 1;
@@ -896,7 +886,7 @@ RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, Rando
 }
 
 template <class RandomAccessIterator, class Comp>
-void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int deep, Comp compare, bool leftmost)
+void quick_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int deep, Comp compare, bool leftmost)
 {
     if (end - beg <= qsort_insertion_sort_threshold)
     {
@@ -917,7 +907,7 @@ void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int dee
     }
 
     bool swaped = false;
-    RandomAccessIterator l = baobao::sort::intro_sort_partition(beg, end, compare, swaped), r = l + 1;
+    RandomAccessIterator l = baobao::sort::quick_sort_partition(beg, end, compare, swaped), r = l + 1;
     if (!swaped && !compare(*(l - 1), *beg))
     {
         RandomAccessIterator i = leftmost ? baobao::sort::insert_sort_limit(beg, l, compare, 1)
@@ -933,34 +923,34 @@ void intro_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int dee
         if (i >= l)
         {
             while (r < end && baobao::util::object_equal(*r, *l, compare)) ++r;
-            return baobao::sort::intro_sort_loop(r, end, deep - 1, compare, false);
+            return baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
         }
     }
     while (r < end && baobao::util::object_equal(*r, *l, compare)) ++r;
 
     if (l - beg < end - r)
     {
-        baobao::sort::intro_sort_loop(beg, l, deep - 1, compare, leftmost);
-        baobao::sort::intro_sort_loop(r, end, deep - 1, compare, false);
+        baobao::sort::quick_sort_loop(beg, l, deep - 1, compare, leftmost);
+        baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
     }
     else
     {
-        baobao::sort::intro_sort_loop(r, end, deep - 1, compare, false);
-        baobao::sort::intro_sort_loop(beg, l, deep - 1, compare, leftmost);
+        baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
+        baobao::sort::quick_sort_loop(beg, l, deep - 1, compare, leftmost);
     }
 }
 
 template <class RandomAccessIterator, class Comp>
-void intro_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+void quick_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     double deep = log(end - beg) / log(1.5);
-    baobao::sort::intro_sort_loop(beg, end, (int)deep, compare, true);
+    baobao::sort::quick_sort_loop(beg, end, (int)deep, compare, true);
 }
 
 template <class RandomAccessIterator>
-void intro_sort(RandomAccessIterator beg, RandomAccessIterator end)
+void quick_sort(RandomAccessIterator beg, RandomAccessIterator end)
 {
-    intro_sort(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
+    quick_sort(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
 }
 
 template <class RandomAccessIterator, class Comp>
@@ -1274,7 +1264,7 @@ void indirect_qsort(RandomAccessIterator beg, RandomAccessIterator end, Comp com
             ptr[i].it = beg + i;
             ptr[i].index = i;
         }
-        baobao::sort::intro_sort(ptr_beg, ptr_end, indirect_sort_comp_warp<RandomAccessIterator, Comp>(compare));
+        baobao::sort::quick_sort(ptr_beg, ptr_end, indirect_sort_comp_warp<RandomAccessIterator, Comp>(compare));
         for (size_t i = 0; i < size; ++i)
         {
             ptr[i].index = ptr[i].it - beg;
@@ -1311,5 +1301,3 @@ void indirect_qsort(RandomAccessIterator beg, RandomAccessIterator end)
 } // namespace sort
 
 } // namespace baobao
-
-#undef BAOBAO_SORT_SAFE_MALLOC
