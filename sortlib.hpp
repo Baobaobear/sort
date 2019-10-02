@@ -812,7 +812,7 @@ RandomAccessIterator intro_sort_partition(RandomAccessIterator beg, RandomAccess
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = baobao::util::fake_rand_simple();
     diff_type n = end - beg, h = (n - 1) / 2, w = h;
-    baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h), compare);
+    baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
 
     typename std::iterator_traits<RandomAccessIterator>::value_type pivot = *r;
     while (1)
@@ -844,24 +844,26 @@ RandomAccessIterator intro_sort_partition(RandomAccessIterator beg, RandomAccess
 template <class RandomAccessIterator, class Comp>
 RandomAccessIterator insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
 {
-    for (RandomAccessIterator i = beg + 1; i < end; ++i, ++limit)
+    for (RandomAccessIterator i = beg + 1; i < end; ++i)
     {
-        if (compare(*i, *(i - 1)))
+        if (!compare(*i, *(i - 1)))
         {
-            typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
-            RandomAccessIterator j = i - 1;
-            *i = *j;
-            for (;j != beg && compare(val, *(j - 1)); --j)
+            ++limit;
+            continue;
+        }
+        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
+        RandomAccessIterator j = i - 1;
+        *i = *j;
+        for (;j != beg && compare(val, *(j - 1)); --j)
+        {
+            if (--limit <= 0)
             {
-                *j = *(j - 1);
-                --limit;
-            }
-            *j = val;
-            if (limit <= 0)
-            {
+                *j = val;
                 return i;
             }
+            *j = *(j - 1);
         }
+        *j = val;
     }
     return end;
 }
@@ -869,24 +871,26 @@ RandomAccessIterator insert_sort_limit(RandomAccessIterator beg, RandomAccessIte
 template <class RandomAccessIterator, class Comp>
 RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
 {
-    for (RandomAccessIterator i = beg + 1; i < end; ++i, ++limit)
+    for (RandomAccessIterator i = beg + 1; i < end; ++i)
     {
-        if (compare(*i, *(i - 1)))
+        if (!compare(*i, *(i - 1)))
         {
-            typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
-            RandomAccessIterator j = i - 1;
-            *i = *j;
-            for (; compare(val, *(j - 1)); --j)
+            ++limit;
+            continue;
+        }
+        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
+        RandomAccessIterator j = i - 1;
+        *i = *j;
+        for (; compare(val, *(j - 1)); --j)
+        {
+            if (--limit <= 0)
             {
-                *j = *(j - 1);
-                --limit;
-            }
-            *j = val;
-            if (limit <= 0)
-            {
+                *j = val;
                 return i;
             }
+            *j = *(j - 1);
         }
+        *j = val;
     }
     return end;
 }
@@ -968,9 +972,45 @@ RandomAccessIterator tim_sort_create_run(RandomAccessIterator beg, RandomAccessI
         return end;
     }
 
-    RandomAccessIterator run_end = beg + 2;
+    bool ascending;
+    RandomAccessIterator run_end = beg + 3;
 
     if (compare(*(beg + 1), *beg))
+    {
+        if (!compare(*(beg + 2), *beg))
+        {
+            std::swap(*beg, *(beg + 1));
+            ascending = true;
+        }
+        else if (compare(*(beg + 2), *(beg + 1)))
+        {
+            ascending = false;
+        }
+        else
+        {
+            std::swap(*(beg + 2), *(beg + 1));
+            ascending = false;
+        }
+    }
+    else
+    {
+        if (compare(*(beg + 2), *beg))
+        {
+            std::swap(*beg, *(beg + 1));
+            ascending = false;
+        }
+        else if (!compare(*(beg + 2), *(beg + 1)))
+        {
+            ascending = true;
+        }
+        else
+        {
+            std::swap(*(beg + 2), *(beg + 1));
+            ascending = true;
+        }
+    }
+
+    if (!ascending)
     {
         while (run_end < end && compare(*run_end, *(run_end - 1)))
         {
