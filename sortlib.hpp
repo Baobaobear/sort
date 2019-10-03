@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include <cmath>
+#include <ctime>
 #include <cstring>
 
 #if __cplusplus >= 201103L || _MSC_VER >= 1700
@@ -38,6 +39,108 @@ enum
 
 namespace util
 {
+
+template<class T, T V>
+struct value_constant
+{
+    static const T value = V;
+};
+
+#if __cplusplus >= 201103L || _MSC_VER >= 1700
+
+template< class T >
+struct is_integral
+    : baobao::util::value_constant<bool, std::is_integral<T>::value>
+{
+};
+
+template< class T >
+struct is_floating_point
+    : baobao::util::value_constant<bool, std::is_floating_point<T>::value>
+{
+};
+
+#else
+
+template< class T >
+struct is_integral
+    : baobao::util::value_constant<bool, false>
+{
+};
+
+template<>
+struct is_integral<char>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<unsigned char>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<short>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<unsigned short>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<int>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<unsigned>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<long>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_integral<unsigned long>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template< class T >
+struct is_floating_point
+    : baobao::util::value_constant<bool, false>
+{
+};
+
+template<>
+struct is_floating_point<float>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+template<>
+struct is_floating_point<double>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
+#endif
+
+template< class T >
+struct is_arithmetic
+    : baobao::util::value_constant<bool, baobao::util::is_integral<T>::value || baobao::util::is_floating_point<T>::value>
+{
+};
 
 template<class T, class Comp>
 inline void make_mid_pivot(T& l, T& mid, T& r, Comp compare)
@@ -106,6 +209,10 @@ class LinearRandomNumberGenerator
 {
     uint32_t rnd;
 public:
+    LinearRandomNumberGenerator()
+    {
+        rnd = (uint32_t)time(NULL);
+    }
     void set_seed(uint32_t seed)
     {
         rnd = seed;
@@ -775,10 +882,24 @@ void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Com
 }
 
 // stable sort
+template <class RandomAccessIterator, class Comp>
+void merge_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    merge_sort_in_place<false>(beg, end, compare, true);
+}
+
+// stable sort
 template <class RandomAccessIterator>
 void merge_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end)
 {
     merge_sort_in_place<false>(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>(), true);
+}
+
+// stable sort
+template <class RandomAccessIterator, class Comp>
+void merge_sort_buffer_s(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    merge_sort_in_place<true>(beg, end, compare, true);
 }
 
 // stable sort
@@ -801,18 +922,37 @@ RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccess
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = baobao::util::fake_rand_simple();
-    diff_type n = end - beg, h = (n - 1) / 2, w = h;
-    baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
+    diff_type n = end - beg, h = (n - 1) / 2;
+    if (baobao::util::is_arithmetic<diff_type>::value)
+    {
+        diff_type w = h;
+        baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
+    }
+    else
+    {
+        if (n < 1 << 14)
+        {
+            diff_type w = h;
+            baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
+        }
+        else
+        {
+            diff_type w = h - 3;
+            util::make_mid_pivot(*(beg),               *(r),           *(beg + h + 1),     compare);
+            util::make_mid_pivot(*(beg + 1),           *(beg + h - 1), *(r - 1),           compare);
+            util::make_mid_pivot(*(beg + 2 + rnd % w), *(beg + h),     *(r - 2 - rnd % w), compare);
+            util::make_mid_pivot(*(beg + h - 1),       *(r),           *(beg + h),         compare);
+        }
+    }
 
     typename std::iterator_traits<RandomAccessIterator>::value_type pivot = *r;
-    while (1)
+
+    while (compare(*l, pivot))
+        ++l;
+    while (l < r && !compare(*r, pivot))
+        --r;
+    if (l < r)
     {
-        while (compare(*l, pivot))
-            ++l;
-        while (l < r && !compare(*r, pivot))
-            --r;
-        if (l >= r)
-            break;
         std::swap(*l++, *r--);
         swaped = true;
         while (1)
@@ -825,7 +965,6 @@ RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccess
                 break;
             std::swap(*l++, *r--);
         }
-        break;
     }
     std::swap(*l, *(end - 1));
     return l;
@@ -928,16 +1067,8 @@ void quick_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int dee
     }
     while (r < end && baobao::util::object_equal(*r, *l, compare)) ++r;
 
-    if (l - beg < end - r)
-    {
-        baobao::sort::quick_sort_loop(beg, l, deep - 1, compare, leftmost);
-        baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
-    }
-    else
-    {
-        baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
-        baobao::sort::quick_sort_loop(beg, l, deep - 1, compare, leftmost);
-    }
+    baobao::sort::quick_sort_loop(beg, l, deep - 1, compare, leftmost);
+    baobao::sort::quick_sort_loop(r, end, deep - 1, compare, false);
 }
 
 template <class RandomAccessIterator, class Comp>
