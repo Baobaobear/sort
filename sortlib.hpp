@@ -478,7 +478,7 @@ void max_heapify_p(RandomAccessIterator first, RandomAccessIterator target, Rand
     RandomAccessIterator son;
     for (; (son = target + (target - first)) < last; target = son)
     {
-        if (son < last && compare(*son, *(son + 1)))
+        if (compare(*son, *(son + 1)))
             ++son;
         if (compare(temp, *son))
             *target = *son;

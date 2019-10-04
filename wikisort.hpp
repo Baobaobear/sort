@@ -554,7 +554,7 @@ namespace Wiki {
                 // after that we can reuse the same buffers over and over, then redistribute it when we're finished with this level
                 Range<RandomAccessIterator> buffer1(first, first);
                 Range<RandomAccessIterator> buffer2(first, first);
-                RandomAccessIterator index, last;
+                RandomAccessIterator index, last_index;
                 std::size_t count, pull_index = 0;
                 struct
                 {
@@ -602,12 +602,12 @@ namespace Wiki {
 
                     // check A for the number of unique values we need to fill an internal buffer
                     // these values will be pulled out to the start of A
-                    for (last = A.start, count = 1; count < find; last = index, ++count) {
-                        index = FindLastForward(last + 1, A.end, *last, compare, find - count);
+                    for (last_index = A.start, count = 1; count < find; last_index = index, ++count) {
+                        index = FindLastForward(last_index + 1, A.end, *last_index, compare, find - count);
                         if (index == A.end) break;
                         assert(index < A.end);
                     }
-                    index = last;
+                    index = last_index;
 
                     if (count >= buffer_size) {
                         // keep track of the range within the array where we'll need to "pull out" these values to create the internal buffer
@@ -646,12 +646,12 @@ namespace Wiki {
 
                     // check B for the number of unique values we need to fill an internal buffer
                     // these values will be pulled out to the end of B
-                        for (last = B.end - 1, count = 1; count < find; last = index - 1, ++count) {
-                            index = FindFirstBackward(B.start, last, *last, compare, find - count);
+                        for (last_index = B.end - 1, count = 1; count < find; last_index = index - 1, ++count) {
+                            index = FindFirstBackward(B.start, last_index, *last_index, compare, find - count);
                             if (index == B.start) break;
                             assert(index > B.start);
                         }
-                        index = last;
+                        index = last_index;
 
                     if (count >= buffer_size) {
                         // keep track of the range within the array where we'll need to "pull out" these values to create the internal buffer
