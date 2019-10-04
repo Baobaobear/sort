@@ -485,9 +485,13 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     diff_type len = end - beg;
-    diff_type incre_list[61] = { 0, 10 };
+    diff_type incre_list[61] = { 0, 9, 34, 182, 836, 4025, 19001, 90358, 428481, 2034035, 9651787, 45806244, 217378076, 1031612713 };
     const double incre_factor = 2.9; // simple and fast enought
 
+    if (!baobao::util::is_arithmetic<value_type>::value)
+    {
+        incre_list[1] = 10;
+    }
     diff_type incre_index = 0;
     for (diff_type i = 1; i < 60; ++i)
     {
@@ -497,8 +501,11 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
             incre_index = i;
             break;
         }
-        mul = (diff_type)(mul * incre_factor);
-        incre_list[i + 1] = (diff_type)mul;
+        if (!baobao::util::is_arithmetic<value_type>::value)
+        {
+            mul = (diff_type)(mul * incre_factor);
+            incre_list[i + 1] = (diff_type)mul;
+        }
     }
 
     for (; incre_index > 0; --incre_index)
@@ -998,10 +1005,11 @@ template <class RandomAccessIterator, class Comp>
 RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, bool& swaped)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
+    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = baobao::util::fake_rand_simple();
     diff_type n = end - beg, h = (n - 1) / 2;
-    if (baobao::util::is_arithmetic<diff_type>::value)
+    if (baobao::util::is_arithmetic<value_type>::value)
     {
         diff_type w = h;
         baobao::util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
@@ -1023,7 +1031,7 @@ RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccess
         }
     }
 
-    typename std::iterator_traits<RandomAccessIterator>::value_type pivot = *r;
+    value_type pivot = *r;
 
     while (compare(*l, pivot))
         ++l;
