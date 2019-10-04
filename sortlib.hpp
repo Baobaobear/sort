@@ -529,9 +529,15 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
         }
         if (!swaped)
         {
-            if (baobao::sort::insert_sort_limit(beg, end, compare, 1) == end)
+            RandomAccessIterator last = baobao::sort::insert_sort_limit(beg, end, compare, 1);
+            if (last == end)
             {
                 return;
+            }
+            while (last - beg > incre << 1)
+            {
+                beg += incre;
+                len = end - beg;
             }
         }
     }
