@@ -154,11 +154,6 @@ static int data_mod_32(int n, int len)
     return n % 32;
 }
 
-static int data_mod_sqrt(int n, int len)
-{
-    return (n % (int)(sqrt(len / 2 + 0.5)));
-}
-
 static int data_xor_31(int n, int len)
 {
     (void)len;
@@ -184,15 +179,14 @@ static void init_gen_data_fun_map(
     gen_data_shuffle[6] = data_shuffle_func;
     gen_data_fun_map[7] = data_mod_32;
     gen_data_fun_map[8] = data_xor_31;
-    gen_data_fun_map[9] = data_mod_sqrt;
 
+    gen_data_fun_map[9] = data_n;
+    gen_data_shuffle[9] = data_shuffle_shellsort;
     gen_data_fun_map[10] = data_n;
-    gen_data_shuffle[10] = data_shuffle_shellsort;
+    gen_data_shuffle[10] = data_shuffle_heapsort;
     gen_data_fun_map[11] = data_n;
-    gen_data_shuffle[11] = data_shuffle_heapsort;
-    gen_data_fun_map[12] = data_n;
-    gen_data_shuffle[12] = data_shuffle_func;
-    split_size_map[12] = 260;
+    gen_data_shuffle[11] = data_shuffle_func;
+    split_size_map[11] = 260;
 }
 
 void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
