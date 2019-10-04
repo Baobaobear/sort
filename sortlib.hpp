@@ -1,7 +1,7 @@
 // filename:    sortlib.hpp
 // author:      baobaobear
 // create date: 2019-09-20
-// This library is compatible with C++98
+// This library is compatible with C++03
 
 #pragma once
 
@@ -818,20 +818,26 @@ void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator b
 template <class RandomAccessIterator, class Comp>
 void merge_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    value_type * buf = (value_type*)malloc((end - beg) / 2 * sizeof(value_type));
-    baobao::sort::merge_sort_recursive<false>(buf, beg, end, compare);
-    free(buf);
+    if (end - beg > 1)
+    {
+        typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
+        value_type * buf = (value_type*)malloc((end - beg) / 2 * sizeof(value_type));
+        baobao::sort::merge_sort_recursive<false>(buf, beg, end, compare);
+        free(buf);
+    }
 }
 
 // stable sort
 template <class RandomAccessIterator, class Comp>
 void merge_sort_s(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    value_type * buf = new value_type[(end - beg) / 2];
-    baobao::sort::merge_sort_recursive<true>(buf, beg, end, compare);
-    delete[] buf;
+    if (end - beg > 1)
+    {
+        typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
+        value_type * buf = new value_type[(end - beg) / 2];
+        baobao::sort::merge_sort_recursive<true>(buf, beg, end, compare);
+        delete[] buf;
+    }
 }
 
 // stable sort
@@ -868,16 +874,19 @@ void merge_sort_recursive_in_place(RandomAccessBufferIterator buf, int bufsize, 
 template <bool safecopy, class RandomAccessIterator, class Comp>
 void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, bool buffered)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    if (buffered)
+    if (end - beg > 1)
     {
-        // not really in-place, uses a fixed size of buffer in stack
-        value_type buf[merge_sort_stack_buffer_size / sizeof(value_type)];
-        baobao::sort::merge_sort_recursive_in_place<safecopy>(buf, sizeof(buf) / sizeof(value_type), beg, end, compare);
-    }
-    else
-    {
-        baobao::sort::merge_sort_recursive_in_place<false>((value_type*)NULL, 0, beg, end, compare);
+        typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
+        if (buffered)
+        {
+            // not really in-place, uses a fixed size of buffer in stack
+            value_type buf[merge_sort_stack_buffer_size / sizeof(value_type)];
+            baobao::sort::merge_sort_recursive_in_place<safecopy>(buf, sizeof(buf) / sizeof(value_type), beg, end, compare);
+        }
+        else
+        {
+            baobao::sort::merge_sort_recursive_in_place<false>((value_type*)NULL, 0, beg, end, compare);
+        }
     }
 }
 
@@ -1074,8 +1083,11 @@ void quick_sort_loop(RandomAccessIterator beg, RandomAccessIterator end, int dee
 template <class RandomAccessIterator, class Comp>
 void quick_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    double deep = log(end - beg) / log(1.5);
-    baobao::sort::quick_sort_loop(beg, end, (int)deep, compare, true);
+    if (end - beg > 1)
+    {
+        double deep = log(end - beg) / log(1.5);
+        baobao::sort::quick_sort_loop(beg, end, (int)deep, compare, true);
+    }
 }
 
 template <class RandomAccessIterator>
@@ -1286,7 +1298,7 @@ template <bool safecopy, class RandomAccessIterator, class Comp>
 void tim_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    if (end > beg)
+    if (end - beg > 1)
     {
         RandomAccessIterator run_stack[78]; // ln(2^32)/ln(4/3) = 77.1
         RandomAccessIterator* stack_top = run_stack + 1;
