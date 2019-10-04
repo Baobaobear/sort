@@ -501,7 +501,7 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
             incre_index = i;
             break;
         }
-        if (!baobao::util::is_arithmetic<value_type>::value)
+        if (!baobao::util::is_arithmetic<value_type>::value || incre_list[i + 1] == 0)
         {
             mul = (diff_type)(mul * incre_factor);
             incre_list[i + 1] = (diff_type)mul;
