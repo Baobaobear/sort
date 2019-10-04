@@ -426,6 +426,60 @@ inline void unguarded_insert_single_rev(RandomAccessIterator i, Comp compare)
 }
 
 template <class RandomAccessIterator, class Comp>
+RandomAccessIterator insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
+{
+    for (RandomAccessIterator i = beg + 1; i < end; ++i)
+    {
+        if (!compare(*i, *(i - 1)))
+        {
+            ++limit;
+            continue;
+        }
+        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
+        RandomAccessIterator j = i - 1;
+        *i = *j;
+        for (;j != beg && compare(val, *(j - 1)); --j)
+        {
+            if (--limit <= 0)
+            {
+                *j = val;
+                return i;
+            }
+            *j = *(j - 1);
+        }
+        *j = val;
+    }
+    return end;
+}
+
+template <class RandomAccessIterator, class Comp>
+RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
+{
+    for (RandomAccessIterator i = beg + 1; i < end; ++i)
+    {
+        if (!compare(*i, *(i - 1)))
+        {
+            ++limit;
+            continue;
+        }
+        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
+        RandomAccessIterator j = i - 1;
+        *i = *j;
+        for (; compare(val, *(j - 1)); --j)
+        {
+            if (--limit <= 0)
+            {
+                *j = val;
+                return i;
+            }
+            *j = *(j - 1);
+        }
+        *j = val;
+    }
+    return end;
+}
+
+template <class RandomAccessIterator, class Comp>
 void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
@@ -449,14 +503,29 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
 
     for (; incre_index > 0; --incre_index)
     {
+        bool swaped = false;
         diff_type incre = incre_list[incre_index];
         for (diff_type i = incre; i < len; i++)
         {
-            diff_type pos = i;
-            value_type val = *(beg + i);
-            for (; pos >= incre && compare(val, *(beg + pos - incre)); pos -= incre)
-                *(beg + pos) = *(beg + pos - incre);
-            *(beg + pos) = val;
+            if (compare(*(beg + i), *(beg + i - incre)))
+            {
+                value_type val = *(beg + i);
+                *(beg + i) = *(beg + i - incre);
+                diff_type pos = i - incre;
+                for (; pos >= incre && compare(val, *(beg + pos - incre)); pos -= incre)
+                {
+                    *(beg + pos) = *(beg + pos - incre);
+                }
+                *(beg + pos) = val;
+                swaped = true;
+            }
+        }
+        if (!swaped)
+        {
+            if (baobao::sort::insert_sort_limit(beg, end, compare, 1) == end)
+            {
+                return;
+            }
         }
     }
 
@@ -977,60 +1046,6 @@ RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccess
     }
     std::swap(*l, *(end - 1));
     return l;
-}
-
-template <class RandomAccessIterator, class Comp>
-RandomAccessIterator insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
-{
-    for (RandomAccessIterator i = beg + 1; i < end; ++i)
-    {
-        if (!compare(*i, *(i - 1)))
-        {
-            ++limit;
-            continue;
-        }
-        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
-        RandomAccessIterator j = i - 1;
-        *i = *j;
-        for (;j != beg && compare(val, *(j - 1)); --j)
-        {
-            if (--limit <= 0)
-            {
-                *j = val;
-                return i;
-            }
-            *j = *(j - 1);
-        }
-        *j = val;
-    }
-    return end;
-}
-
-template <class RandomAccessIterator, class Comp>
-RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, RandomAccessIterator end, Comp compare, int limit)
-{
-    for (RandomAccessIterator i = beg + 1; i < end; ++i)
-    {
-        if (!compare(*i, *(i - 1)))
-        {
-            ++limit;
-            continue;
-        }
-        typename std::iterator_traits<RandomAccessIterator>::value_type val = *i;
-        RandomAccessIterator j = i - 1;
-        *i = *j;
-        for (; compare(val, *(j - 1)); --j)
-        {
-            if (--limit <= 0)
-            {
-                *j = val;
-                return i;
-            }
-            *j = *(j - 1);
-        }
-        *j = val;
-    }
-    return end;
 }
 
 template <class RandomAccessIterator, class Comp>

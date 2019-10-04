@@ -8,21 +8,21 @@ This is a sorting library, compatible with C++03
 
 ## Algorithm table
 
-Algorithm     | Stable | Best  |  Average  |   Worst   | Mem | Header | Name |
--------------------|---|-------|-----------|-----------|-----|--------| -----|
-Insertion sort     |yes| n     | n^2       | n^2       | 1   | sortlib.hpp | insert_sort |
-Heapsort           |no | n     | nlogn     | nlogn     | 1   | sortlib.hpp | heap_sort |
-Shellsort          |no | nlogn | n^(4/3) ? | n^(4/3) ? | 1   | sortlib.hpp | shell_sort |
-Quicksort          |no | n     | nlogn     | nlogn     | logn| sortlib.hpp | quick_sort |
-Quicksort indirect |yes| n     | nlogn     | nlogn     | logn| sortlib.hpp | indirect_qsort |
-Mergesort          |yes| n     | nlogn     | nlogn     | n   | sortlib.hpp | merge_sort |
-Mergesort buffer   |yes| n     | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_buffer |
-Mergesort in-place |yes| n     | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_in_place |
-Timsort            |yes| n     | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
-Grailsort dynamic  |yes| n     | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
-Grailsort buffer   |yes| n     | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_buffer |
-Grailsort in-place |yes| n     | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_in_place |
-Wikisort           |yes| n     | nlogn     | nlogn     | 1   | wikisort.hpp | wiki_sort |
+Algorithm     | Stable|Best|  Average  |   Worst   | Mem | Header | Name |
+-------------------|---|---|-----------|-----------|-----|--------| -----|
+Insertion sort     |yes| n | n^2       | n^2       | 1   | sortlib.hpp | insert_sort |
+Heapsort           |no | n | nlogn     | nlogn     | 1   | sortlib.hpp | heap_sort |
+Shellsort          |no | n | n^(4/3) ? | n^(4/3) ? | 1   | sortlib.hpp | shell_sort |
+Quicksort          |no | n | nlogn     | nlogn     | logn| sortlib.hpp | quick_sort |
+Quicksort indirect |yes| n | nlogn     | nlogn     | logn| sortlib.hpp | indirect_qsort |
+Mergesort          |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | merge_sort |
+Mergesort buffer   |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_buffer |
+Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_in_place |
+Timsort            |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
+Grailsort dynamic  |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
+Grailsort buffer   |yes| n | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_buffer |
+Grailsort in-place |yes| n | nlogn     | nlogn | 1       | grailsort.hpp |grail_sort_in_place|
+Wikisort           |yes| n | nlogn     | nlogn     | 1   | wikisort.hpp | wiki_sort |
 
 # Usage
 

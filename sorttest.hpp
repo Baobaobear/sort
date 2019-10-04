@@ -37,6 +37,10 @@ struct TestClass
         : val(0)
         , index(0)
     {
+        for (int i = 0; i < data_len; ++i)
+        {
+            data[i] = 0;
+        }
     }
 
     TestClass(const TestClass& v)
