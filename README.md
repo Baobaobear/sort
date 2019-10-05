@@ -4,7 +4,7 @@
 
 # Overview
 
-This is a sorting library, compatible with C++03
+This is a highly-optimized sorting library, compatible with C++03
 
 ## Algorithm table
 
@@ -17,7 +17,7 @@ Quicksort          |no | n | nlogn     | nlogn     | logn| sortlib.hpp | quick_s
 Quicksort indirect |yes| n | nlogn     | nlogn     | logn| sortlib.hpp | indirect_qsort |
 Mergesort          |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | merge_sort |
 Mergesort buffer   |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_buffer |
-Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_in_place |
+Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp |merge_sort_in_place|
 Timsort            |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
 Grailsort dynamic  |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
 Grailsort buffer   |yes| n | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_buffer |
@@ -48,7 +48,7 @@ int main(void)
 
 Call it like STL as well
 
-Note:  
+### Note
 `merge_sort_s`, `merge_sort_buffer_s`, `tim_sort_s` is the safe copy version if you overload operator `=` and do something different
 
 # Performance

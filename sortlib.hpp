@@ -534,9 +534,9 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
             {
                 return;
             }
-            while (last - beg > incre << 1)
+            if (last - beg >= incre << 1)
             {
-                beg += incre;
+                beg += ((last - beg) / incre - 1) * incre;
                 len = end - beg;
             }
         }
