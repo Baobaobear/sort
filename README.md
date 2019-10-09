@@ -19,6 +19,7 @@ Mergesort          |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | merge_s
 Mergesort buffer   |yes| n | n(logn)^2 |n(logn)^2|sqrt(n)| sortlib.hpp | merge_sort_buffer |
 Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp |merge_sort_in_place|
 Timsort            |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
+Timsort buffer     |yes| n | nlogn     | nlogn | sqrt(n) | sortlib.hpp | tim_sort_buffer |
 Grailsort dynamic  |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
 Grailsort buffer   |yes| n | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_buffer |
 Grailsort in-place |yes| n | nlogn     | nlogn | 1       | grailsort.hpp |grail_sort_in_place|
