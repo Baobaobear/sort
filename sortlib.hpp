@@ -816,7 +816,7 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
                     else
                     {
                         memcpy((char*)buf, (char*)&*beg, (char*)&*mid - (char*)&*beg);
-                        memcpy((char*)beg, (char*)&*mid, (char*)&*end - (char*)&*mid);
+                        memcpy((char*)&*beg, (char*)&*mid, (char*)&*end - (char*)&*mid);
                         memcpy((char*)&*(beg + (end - mid)), (char*)buf, (char*)&*mid - (char*)&*beg);
                     }
                     return ret;
@@ -858,7 +858,7 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
                     else
                     {
                         memcpy((char*)buf, (char*)&*mid, (char*)&*end - (char*)&*mid);
-                        memmove((char*)(end - (mid - beg)), (char*)&*beg, (char*)&*mid - (char*)&*beg);
+                        memmove((char*)&*(end - (mid - beg)), (char*)&*beg, (char*)&*mid - (char*)&*beg);
                         memcpy((char*)&*beg, (char*)buf, (char*)&*end - (char*)&*mid);
                     }
                     return ret;
