@@ -27,6 +27,8 @@ enum
 {
     qsort_insertion_sort_threshold = 40,
 
+    find_swap_bound_optimize_threshold = 256,
+
     merge_insertion_sort_threshold = 32,
     merge_2_part_insertion_sort_threshold = 32,
 
@@ -34,6 +36,7 @@ enum
     timsort_min_run = 32,
     timsort_insert_gap = 8,
 
+    merge_sort_alloc_buffer = 1,
     merge_sort_stack_buffer_size = 16384
 };
 
@@ -503,8 +506,7 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
         }
         if (!baobao::util::is_arithmetic<value_type>::value || incre_list[i + 1] == 0)
         {
-            mul = (diff_type)(mul * incre_factor);
-            incre_list[i + 1] = (diff_type)mul;
+            incre_list[i + 1] = (diff_type)(mul * incre_factor);
         }
     }
 
@@ -776,8 +778,9 @@ void swap_2_part_with_same_length(RandomAccessIterator beg, RandomAccessIterator
 }
 
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator>
-void swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end)
+RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end)
 {
+    RandomAccessIterator ret = beg + (end - mid);
     while (true)
     {
         if (mid - beg <= end - mid)
@@ -816,11 +819,11 @@ void swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, Random
                         memcpy((char*)beg, (char*)&*mid, (char*)&*end - (char*)&*mid);
                         memcpy((char*)&*(beg + (end - mid)), (char*)buf, (char*)&*mid - (char*)&*beg);
                     }
-                    break;
+                    return ret;
                 }
             }
             else
-                break;
+                return ret;
         }
         else
         {
@@ -858,11 +861,11 @@ void swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, Random
                         memmove((char*)(end - (mid - beg)), (char*)&*beg, (char*)&*mid - (char*)&*beg);
                         memcpy((char*)&*beg, (char*)buf, (char*)&*end - (char*)&*mid);
                     }
-                    break;
+                    return ret;
                 }
             }
             else
-                break;
+                return ret;
         }
     }
 }
@@ -870,12 +873,81 @@ void swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, Random
 template <class RandomAccessIterator, class Comp>
 std::pair<RandomAccessIterator, RandomAccessIterator> find_swap_bound(RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
-    RandomAccessIterator pivot_r = mid + (end - mid) / 2 + 1;
-    RandomAccessIterator pivot_l = std::upper_bound(beg, mid, *pivot_r, compare);
+    if (end - mid < find_swap_bound_optimize_threshold)
+    {
+        RandomAccessIterator pivot_r = mid + (end - mid) / 2 + 1;
+        RandomAccessIterator pivot_l = std::upper_bound(beg, mid, *pivot_r, compare);
 
-    pivot_r = std::lower_bound(pivot_r, end, *pivot_l, compare);
+        pivot_r = std::lower_bound(pivot_r, end, *pivot_l, compare);
 
-    return std::make_pair(pivot_l, pivot_r);
+        return std::make_pair(pivot_l, pivot_r);
+    }
+    else
+    {
+        typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
+
+        RandomAccessIterator pivot_l = beg;
+        RandomAccessIterator pivot_l_map = std::lower_bound(mid, end, *pivot_l, compare);
+
+        if (pivot_l_map - mid > (end - mid) / 2 || mid - pivot_l <= pivot_l_map - mid)
+        {
+            return std::make_pair(pivot_l, pivot_l_map);
+        }
+
+        RandomAccessIterator pivot_r = std::lower_bound(beg, mid, *(end - 1), compare);
+        RandomAccessIterator pivot_r_map = std::lower_bound(mid, end, *pivot_r, compare);
+
+        if (mid - pivot_r > (mid - beg) / 2 || mid - pivot_r >= pivot_r_map - mid)
+        {
+            return std::make_pair(pivot_r, pivot_r_map);
+        }
+
+        do 
+        {
+            RandomAccessIterator pivot_m = pivot_l + (pivot_r - pivot_l) / 2;
+            pivot_m = std::lower_bound(pivot_l, pivot_r, *pivot_m, compare);
+            if (pivot_m == pivot_l)
+            {
+                pivot_m = std::upper_bound(pivot_l, pivot_r, *pivot_m, compare);
+                if (pivot_m == pivot_r)
+                {
+                    {
+                        diff_type pivot_m_diff = (mid - pivot_l) - (pivot_l_map - mid);
+                        if (pivot_l + pivot_m_diff <= pivot_r)
+                        {
+                            return std::make_pair(pivot_l + pivot_m_diff, pivot_l_map);
+                        }
+                    }
+                    {
+                        diff_type pivot_m_diff = (mid - pivot_r) - (pivot_r_map - mid);
+                        if (pivot_l_map <= pivot_r_map + pivot_m_diff)
+                        {
+                            return std::make_pair(pivot_r, pivot_r_map + pivot_m_diff);
+                        }
+                    }
+                    return std::make_pair(pivot_l, pivot_l_map);
+                }
+            }
+            RandomAccessIterator pivot_m_map = std::lower_bound(pivot_l_map, pivot_r_map, *pivot_m, compare);
+            diff_type pivot_m_diff = (mid - pivot_m) - (pivot_m_map - mid);
+            if (pivot_m_diff > 0)
+            {
+                pivot_l = pivot_m;
+                pivot_l_map = pivot_m_map;
+            }
+            else if (pivot_m_diff < 0)
+            {
+                pivot_r = pivot_m;
+                pivot_r_map = pivot_m_map;
+            }
+            else
+            {
+                return std::make_pair(pivot_m, pivot_m_map);
+            }
+        } while (true);
+
+        return std::make_pair(pivot_l, pivot_l_map);
+    }
 }
 
 // stable sort
@@ -925,11 +997,11 @@ void merge_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, Rando
 
     std::pair<RandomAccessIterator, RandomAccessIterator> pair = find_swap_bound(beg, mid, end, compare);
 
-    baobao::sort::swap_2_part_with_buffer<safecopy>(buf, bufsize, pair.first, mid, pair.second);
+    RandomAccessIterator swap_mid = baobao::sort::swap_2_part_with_buffer<safecopy>(buf, bufsize, pair.first, mid, pair.second);
     if (beg < pair.first)
-        baobao::sort::merge_2_part_with_buffer<safecopy>(buf, bufsize, beg, pair.first, pair.first + (pair.second - mid), compare);
+        baobao::sort::merge_2_part_with_buffer<safecopy>(buf, bufsize, beg, pair.first, swap_mid, compare);
     if (pair.second < end)
-        baobao::sort::merge_2_part_with_buffer<safecopy>(buf, bufsize, pair.first + (pair.second - mid), pair.second, end, compare);
+        baobao::sort::merge_2_part_with_buffer<safecopy>(buf, bufsize, swap_mid, pair.second, end, compare);
 }
 
 // stable sort
@@ -1013,9 +1085,19 @@ void merge_sort_with_buffer(RandomAccessIterator beg, RandomAccessIterator end, 
         typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
         if (buffered)
         {
-            // not really in-place, uses a fixed size of buffer in stack
-            value_type buf[merge_sort_stack_buffer_size / sizeof(value_type)];
-            baobao::sort::merge_sort_recursive_with_buffer<safecopy>(buf, sizeof(buf) / sizeof(value_type), beg, end, compare);
+            if (merge_sort_alloc_buffer)
+            {
+                int buf_size = (int)sqrt(end - beg + 0.1);
+                value_type * buf = new value_type[buf_size];
+                baobao::sort::merge_sort_recursive_with_buffer<safecopy>(buf, buf_size, beg, end, compare);
+                delete[] buf;
+            }
+            else
+            {
+                // not really in-place, uses a fixed size of buffer in stack
+                value_type buf[merge_sort_stack_buffer_size / sizeof(value_type)];
+                baobao::sort::merge_sort_recursive_with_buffer<safecopy>(buf, sizeof(buf) / sizeof(value_type), beg, end, compare);
+            }
         }
         else
         {

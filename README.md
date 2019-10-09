@@ -16,7 +16,7 @@ Shellsort          |no | n | n^(4/3) ? | n^(4/3) ? | 1   | sortlib.hpp | shell_s
 Quicksort          |no | n | nlogn     | nlogn     | logn| sortlib.hpp | quick_sort |
 Quicksort indirect |yes| n | nlogn     | nlogn     | logn| sortlib.hpp | indirect_qsort |
 Mergesort          |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | merge_sort |
-Mergesort buffer   |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp | merge_sort_buffer |
+Mergesort buffer   |yes| n | n(logn)^2 |n(logn)^2|sqrt(n)| sortlib.hpp | merge_sort_buffer |
 Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp |merge_sort_in_place|
 Timsort            |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
 Grailsort dynamic  |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
@@ -118,4 +118,3 @@ The y-axis is `time / length * 1000000`
 # License
 
 This project is licensed under the MIT License.
-
