@@ -208,7 +208,7 @@ void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
     {
         //test_func_map["grail_in"] = baobao_warp::grail_sort_in_place;
         //test_func_map["grail_buf"] = baobao_warp::grail_sort_buf;
-        test_func_map["grail_dyn"] = baobao_warp::grail_sort_dynbuf;
+        test_func_map["grail_sort"] = baobao_warp::grail_sort_dynbuf;
     }
     // https://github.com/BonzaiThePenguin/WikiSort
     {

@@ -13,7 +13,7 @@
 #include <ctime>
 #include <cstring>
 
-#if __cplusplus >= 201103L || _MSC_VER >= 1700
+#if __cplusplus >= 201103L || _MSC_VER >= 1600
     #include <cstdint>
     #include <type_traits>
 #else
@@ -49,7 +49,7 @@ struct value_constant
     static const T value = V;
 };
 
-#if __cplusplus >= 201103L || _MSC_VER >= 1700
+#if __cplusplus >= 201103L || _MSC_VER >= 1600
 
 template< class T >
 struct is_integral
@@ -1148,7 +1148,7 @@ void quick_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
 {
     if (end - beg > 1)
     {
-        double deep = log(end - beg) / log(1.5);
+        double deep = log((double)(end - beg)) / log(1.5);
         quick_sort_loop(beg, end, (int)deep, compare, true);
     }
 }

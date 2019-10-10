@@ -15,7 +15,7 @@
 #include <limits>
 
 // whether to give WikiSort a full-size cache, to see how it performs when given more memory
-#define DYNAMIC_CACHE false
+#define DYNAMIC_CACHE 0
 
 
 // structure to represent ranges within the array
@@ -547,7 +547,7 @@ namespace Wiki {
                 // 7. sort the second internal buffer if it exists
                 // 8. redistribute the two internal buffers back into the array
 
-                std::size_t block_size = static_cast<std::size_t>(std::sqrt(iterator.length()));
+                std::size_t block_size = static_cast<std::size_t>(std::sqrt((double)iterator.length()));
                 std::size_t buffer_size = iterator.length()/block_size + 1;
 
                 // as an optimization, we really only need to pull out the internal buffers once for each level of merges

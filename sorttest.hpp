@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 
 #if __cplusplus >= 201103L || _MSC_VER >= 1700
 #define BAO_SORT_LIB_STD11

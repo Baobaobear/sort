@@ -1,6 +1,6 @@
 # Sort
 
-[![Build Status](https://travis-ci.org/Baobaobear/sort.svg?branch=master)](https://travis-ci.org/Baobaobear/sort) [![Build status](https://ci.appveyor.com/api/projects/status/wtt8m5ss33jxl3og?svg=true)](https://ci.appveyor.com/project/Baobaobear/sort) [![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/) [![Standard](https://img.shields.io/badge/C++-03-orange.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status]][Travis CI][![Appveyor status]][Appveyor] [![Language]](https://isocpp.org/)[![Standard]][Standard Cpp][![License]][MIT]
 
 # Overview
 
@@ -122,6 +122,15 @@ The y-axis is `time / length * 1000000`
 
 This project is licensed under the MIT License.
 
+[Build Status]:     https://travis-ci.org/Baobaobear/sort.svg?branch=master
+[Travis CI]:        https://travis-ci.org/Baobaobear/sort
+[Appveyor status]:  https://ci.appveyor.com/api/projects/status/wtt8m5ss33jxl3og?svg=true
+[Appveyor]:         https://ci.appveyor.com/project/Baobaobear/sort
+[Language]:         https://img.shields.io/badge/language-C++-blue.svg
+[Standard]:         https://img.shields.io/badge/C++-03-orange.svg
+[Standard Cpp]:     https://en.wikipedia.org/wiki/C%2B%2B#Standardization
+[License]:          https://img.shields.io/badge/license-MIT-blue.svg
+[MIT]:              https://opensource.org/licenses/MIT
 [sorttest.cpp]:     sorttest.cpp
 [demo.cpp]:         demo.cpp
 [Grailsort]:        https://github.com/Mrrl/GrailSort
