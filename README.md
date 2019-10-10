@@ -14,20 +14,20 @@ Insertion sort     |yes| n | n^2       | n^2       | 1   | sortlib.hpp | insert_
 Heapsort           |no | n | nlogn     | nlogn     | 1   | sortlib.hpp | heap_sort |
 Shellsort          |no | n | n^(4/3) ? | n^(4/3) ? | 1   | sortlib.hpp | shell_sort |
 Quicksort          |no | n | nlogn     | nlogn     | logn| sortlib.hpp | quick_sort |
-Quicksort indirect |yes| n | nlogn     | nlogn     | logn| sortlib.hpp | indirect_qsort |
+Quicksort indirect |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | indirect_qsort |
 Mergesort          |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | merge_sort |
 Mergesort buffer   |yes| n | n(logn)^2 |n(logn)^2|sqrt(n)| sortlib.hpp | merge_sort_buffer |
 Mergesort in-place |yes| n | n(logn)^2 | n(logn)^2 | logn| sortlib.hpp |merge_sort_in_place|
 Timsort            |yes| n | nlogn     | nlogn     | n   | sortlib.hpp | tim_sort |
 Timsort buffer     |yes| n | nlogn     | nlogn | sqrt(n) | sortlib.hpp | tim_sort_buffer |
-Grailsort dynamic  |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
+[Grailsort]        |yes| n | nlogn     | nlogn | sqrt(n) | grailsort.hpp | grail_sort |
 Grailsort buffer   |yes| n | nlogn     | nlogn | 1       | grailsort.hpp | grail_sort_buffer |
 Grailsort in-place |yes| n | nlogn     | nlogn | 1       | grailsort.hpp |grail_sort_in_place|
-Wikisort           |yes| n | nlogn     | nlogn     | 1   | wikisort.hpp | wiki_sort |
+[Wikisort]         |yes| n | nlogn     | nlogn | 1       | wikisort.hpp | wiki_sort |
 
 # Usage
 
-Here is the demo, or you can try [demo.cpp](demo.cpp)
+Here is the demo, or you can try [demo.cpp]
 
 ```c
 #include "sortlib.hpp"
@@ -54,7 +54,7 @@ Call it like STL as well
 
 # Performance
 
-Run the code [sorttest.cpp](sorttest.cpp), it will output the result
+Run the code [sorttest.cpp], it will output the result
 
 Build with `g++ -std=c++03 -O3 sorttest.cpp` on Centos 7 x64, gcc version is 8.3.1
 
@@ -66,39 +66,41 @@ Functions name with `grail_` perfix are in `grailsort.hpp` header
 
 TestClass 8 |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  10 |  11 | Avg |
 ------------|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|
-bao_qsort   |   10|   22|   29|  154|  154|   55|   51|   62|   84|  148|  117|   80|
-std::sort   |  100|   59|   58|  192|  167|  117|  118|   69|   92|  160|  129|  114|
-bao_tim     |    5|    8|   18|  236|  225|  206|  151|    9|   87|  217|  114|  116|
-bao_merge   |    5|   15|  150|  226|  220|  188|  152|   52|   79|  226|  127|  130|
-bao_mer_buf |    4|   14|  127|  354|  352|  240|  171|   51|   79|  326|  125|  167|
-bao_shell   |    9|   14|  118|  373|  381|  190|  145|   83|  106|  352|  136|  173|
-wiki_sort   |   13|   62|  210|  340|  358|  332|  251|  129|  177|  334|  145|  213|
-bao_mer_in  |    5|   14|  126|  510|  526|  266|  204|   50|   87|  493|  163|  222|
-std::stable |  277|  272|  279|  313|  320|  289|  293|  271|  274|  320|  146|  277|
-std_qsort   |  165|  175|  266|  421|  413|  353|  302|  201|  223|  415|  260|  290|
-grail_dyn   |   76|  279|  324|  445|  432|  424|  318|  287|  286|  422|  215|  318|
-bao_heap    |   28|  165|  196|  725|  708|  266|  265|  177|  189|  716|  172|  327|
-bao_indir   |   75|   56|   55|  733|  734|  531|  558|  124|  143|  665|  153|  347|
-std::heap   |  189|  190|  230|  795|  760|  318|  299|  192|  208|  757|  217|  377|
+bao_qsort   |   11|   27|   39|  190|  169|   63|   62|   79|   98|  170|  129|   94|
+std::sort   |  143|   62|   80|  190|  178|  146|  138|   94|  101|  192|  144|  133|
+bao_tim     |    8|   12|   18|  263|  273|  224|  195|    9|   94|  266|  152|  137|
+bao_merge   |    8|   19|  193|  254|  261|  220|  184|   55|   92|  261|  147|  154|
+bao_tim_buf |    6|   11|   21|  363|  404|  262|  203|   10|   90|  329|  145|  167|
+bao_mer_buf |    6|   21|  156|  374|  357|  244|  223|   67|   94|  349|  145|  185|
+bao_shell   |    9|   12|  159|  443|  455|  248|  171|  101|  132|  425|  158|  210|
+wiki_sort   |   15|   87|  267|  397|  434|  375|  307|  151|  220|  402|  171|  256|
+bao_mer_in  |    7|   19|  165|  592|  603|  309|  251|   58|   97|  581|  216|  263|
+std::stable |  372|  344|  356|  378|  377|  380|  321|  337|  332|  364|  182|  340|
+std_qsort   |  181|  215|  355|  463|  524|  416|  379|  227|  281|  469|  339|  349|
+grail_sort  |  104|  336|  396|  531|  517|  520|  359|  364|  366|  494|  276|  387|
+bao_heap    |   30|  258|  220|  844|  908|  332|  318|  199|  234|  889|  200|  402|
+bao_indir   |  103|   65|   67|  855|  833|  679|  684|  129|  162|  784|  185|  413|
+std::heap   |  235|  247|  287|  901|  938|  398|  339|  232|  240|  988|  274|  461|
 
 #### Sorting 4,500,000 int
 
 int         |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  10 |  11 | Avg |
 ------------|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|
-bao_qsort   |    4|   11|   26|  267|  269|   65|   44|   70|  106|  256|  190|  118|
-bao_tim     |    2|    3|    6|  315|  312|  139|   61|    7|   99|  315|  204|  133|
-std::sort   |   42|   53|   59|  280|  281|  104|   87|   69|  136|  271|  211|  144|
-bao_merge   |    3|   17|   64|  339|  322|  143|   92|   61|  105|  316|  217|  152|
-bao_shell   |    4|    5|   57|  404|  400|  179|   51|   33|   84|  379|  216|  164|
-bao_mer_buf |    5|   16|   82|  356|  361|  157|  136|   58|  103|  350|  215|  167|
-std::stable |   79|   80|   90|  351|  344|  184|   84|   88|  143|  340|  241|  184|
-wiki_sort   |   14|   39|   85|  415|  405|  229|  141|   87|  152|  395|  246|  200|
-grail_dyn   |   61|  106|  129|  416|  427|  383|  161|  117|  174|  392|  389|  250|
-std_qsort   |  126|  131|  161|  488|  495|  312|  208|  157|  221|  477|  380|  286|
-bao_mer_in  |    3|   16|   99|  778|  795|  279|  232|   72|  126|  728|  324|  313|
-bao_heap    |   12|  223|  235|  789|  771|  270|  246|  214|  243|  783|  299|  371|
-std::heap   |  228|  213|  230|  818|  834|  297|  251|  204|  244|  819|  350|  408|
-bao_indir   |  126|   77|   89| 1389| 1413| 1077| 1107|  175|  274| 1268|  333|  666|
+bao_qsort   |    7|   16|   21|  289|  300|   79|   36|   80|  125|  293|  208|  132|
+bao_tim     |    2|    3|    6|  364|  363|  172|   89|    7|  119|  345|  226|  154|
+std::sort   |   55|   71|   67|  312|  313|  116|   94|   76|  142|  281|  230|  159|
+bao_tim_buf |    3|    5|    7|  402|  406|  183|  100|    6|  112|  390|  238|  168|
+bao_merge   |    6|   17|   74|  373|  362|  187|  122|   78|  127|  360|  235|  176|
+bao_mer_buf |    6|   19|   67|  420|  401|  195|  129|   74|  115|  391|  247|  187|
+bao_shell   |    5|    6|   65|  481|  459|  203|   73|   40|   95|  448|  245|  192|
+std::stable |  101|   99|  106|  398|  369|  217|  110|  107|  171|  376|  260|  210|
+wiki_sort   |   19|   51|   91|  452|  476|  259|  172|   93|  171|  448|  266|  227|
+grail_sort  |   75|  131|  164|  460|  458|  433|  202|  130|  189|  423|  467|  284|
+std_qsort   |  148|  149|  198|  536|  534|  368|  257|  187|  256|  515|  408|  323|
+bao_mer_in  |    4|   19|  137|  898|  954|  330|  263|   89|  136|  926|  359|  374|
+bao_heap    |   11|  247|  291| 1002|  957|  337|  278|  244|  282|  971|  311|  448|
+std::heap   |  246|  259|  332|  996|  984|  303|  300|  249|  299|  982|  425|  488|
+bao_indir   |  133|   96|  107| 1643| 1624| 1327| 1337|  225|  294| 1486|  357|  784|
 
 # Benchmark of random shuffle data 
 
@@ -119,3 +121,8 @@ The y-axis is `time / length * 1000000`
 # License
 
 This project is licensed under the MIT License.
+
+[sorttest.cpp]:     sorttest.cpp
+[demo.cpp]:         demo.cpp
+[Grailsort]:        https://github.com/Mrrl/GrailSort
+[Wikisort]:         https://github.com/BonzaiThePenguin/WikiSort

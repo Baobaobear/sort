@@ -233,7 +233,7 @@ void baobao_insert_sort(sort_element_t arr[], size_t len)
 
 void baobao_q_insert_sort(sort_element_t arr[], size_t len)
 {
-    baobao::sort::q_insert_sort(arr, arr + len, std::less<sort_element_t>());
+    baobao::internal::q_insert_sort(arr, arr + len, std::less<sort_element_t>());
 }
 
 void baobao_heap_sort(sort_element_t arr[], size_t len)
