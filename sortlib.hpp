@@ -810,13 +810,13 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
                         }
                         for (RandomAccessBufferIterator it = buf; it < t; ++m, ++it)
                         {
-                            *m = *t;
+                            *m = *it;
                         }
                     }
                     else
                     {
                         memcpy((char*)buf, (char*)&*beg, (char*)&*mid - (char*)&*beg);
-                        memcpy((char*)&*beg, (char*)&*mid, (char*)&*end - (char*)&*mid);
+                        memmove((char*)&*beg, (char*)&*mid, (char*)&*end - (char*)&*mid);
                         memcpy((char*)&*(beg + (end - mid)), (char*)buf, (char*)&*mid - (char*)&*beg);
                     }
                     return ret;
@@ -873,7 +873,7 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
 template <class RandomAccessIterator, class Comp>
 std::pair<RandomAccessIterator, RandomAccessIterator> find_swap_bound(RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
-    if (end - mid < find_swap_bound_optimize_threshold)
+    if (end - beg < find_swap_bound_optimize_threshold)
     {
         RandomAccessIterator pivot_r = mid + (end - mid) / 2 + 1;
         RandomAccessIterator pivot_l = std::upper_bound(beg, mid, *pivot_r, compare);
@@ -920,7 +920,7 @@ std::pair<RandomAccessIterator, RandomAccessIterator> find_swap_bound(RandomAcce
                     }
                     {
                         diff_type pivot_m_diff = (mid - pivot_r) - (pivot_r_map - mid);
-                        if (pivot_l_map <= pivot_r_map + pivot_m_diff)
+                        if (pivot_l_map - pivot_m_diff <= pivot_r_map)
                         {
                             return std::make_pair(pivot_r, pivot_r_map + pivot_m_diff);
                         }
@@ -1085,7 +1085,12 @@ void merge_sort_with_buffer(RandomAccessIterator beg, RandomAccessIterator end, 
         typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
         if (buffered)
         {
-            if (merge_sort_alloc_buffer)
+            if ((end - beg) / 2 * sizeof(value_type) <= merge_sort_stack_buffer_size)
+            {
+                value_type buf[merge_sort_stack_buffer_size / sizeof(value_type)];
+                baobao::sort::merge_sort_recursive<safecopy>(buf, beg, end, compare);
+            }
+            else if (merge_sort_alloc_buffer)
             {
                 int buf_size = (int)sqrt(end - beg + 0.1);
                 value_type * buf = new value_type[buf_size];
@@ -1138,7 +1143,7 @@ void merge_sort_buffer_s(RandomAccessIterator beg, RandomAccessIterator end)
 template <class RandomAccessIterator, class Comp>
 void merge_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    merge_sort_with_buffer<false>(beg, end, compare, false);
+    merge_sort_with_buffer<true>(beg, end, compare, false);
 }
 
 // stable sort
