@@ -477,67 +477,74 @@ RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, Rando
 template <class RandomAccessIterator, class Comp>
 void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
-    diff_type len = end - beg;
-    diff_type incre_list[61] = { 0, 9, 34, 182, 836, 4025, 19001, 90358, 428481, 2034035, 9651787, 45806244, 217378076, 1031612713 };
-    const double incre_factor = 2.9; // simple and fast enought
+    if (end - beg > 10)
+    {
+        typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
+        typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
+        diff_type len = end - beg;
+        diff_type incre_list[61] = { 0, 9, 34, 182, 836, 4025, 19001, 90358, 428481, 2034035, 9651787, 45806244, 217378076, 1031612713 };
+        const double incre_factor = 2.9; // simple and fast enought
 
-    if (!baobao::util::is_arithmetic<value_type>::value)
-    {
-        incre_list[1] = 10;
-    }
-    diff_type incre_index = 0;
-    for (diff_type i = 1; i < 60; ++i)
-    {
-        diff_type mul = incre_list[i];
-        if (mul * incre_factor >= len)
+        if (!util::is_arithmetic<value_type>::value)
         {
-            incre_index = i;
-            break;
+            incre_list[1] = 10;
         }
-        if (!baobao::util::is_arithmetic<value_type>::value || incre_list[i + 1] == 0)
+        diff_type incre_index = 0;
+        for (diff_type i = 1; i < 60; ++i)
         {
-            incre_list[i + 1] = (diff_type)(mul * incre_factor);
-        }
-    }
-
-    for (; incre_index > 0; --incre_index)
-    {
-        bool swaped = false;
-        diff_type incre = incre_list[incre_index];
-        for (diff_type i = incre; i < len; i++)
-        {
-            if (compare(*(beg + i), *(beg + i - incre)))
+            diff_type mul = incre_list[i];
+            if (mul * incre_factor >= len)
             {
-                value_type val = *(beg + i);
-                *(beg + i) = *(beg + i - incre);
-                diff_type pos = i - incre;
-                for (; pos >= incre && compare(val, *(beg + pos - incre)); pos -= incre)
+                incre_index = i;
+                break;
+            }
+            if (!util::is_arithmetic<value_type>::value || incre_list[i + 1] == 0)
+            {
+                incre_list[i + 1] = (diff_type)(mul * incre_factor);
+            }
+        }
+
+        for (; incre_index > 0; --incre_index)
+        {
+            bool swaped = false;
+            diff_type incre = incre_list[incre_index];
+            for (diff_type i = incre; i < len; i++)
+            {
+                if (compare(*(beg + i), *(beg + i - incre)))
                 {
-                    *(beg + pos) = *(beg + pos - incre);
+                    value_type val = *(beg + i);
+                    *(beg + i) = *(beg + i - incre);
+                    diff_type pos = i - incre;
+                    for (; pos >= incre && compare(val, *(beg + pos - incre)); pos -= incre)
+                    {
+                        *(beg + pos) = *(beg + pos - incre);
+                    }
+                    *(beg + pos) = val;
+                    swaped = true;
                 }
-                *(beg + pos) = val;
-                swaped = true;
+            }
+            if (!swaped)
+            {
+                RandomAccessIterator last = insert_sort_limit(beg, end, compare, 1);
+                if (last == end)
+                {
+                    return;
+                }
+                if (last - beg >= incre << 1)
+                {
+                    beg += ((last - beg) / incre - 1) * incre;
+                    len = end - beg;
+                }
             }
         }
-        if (!swaped)
-        {
-            RandomAccessIterator last = insert_sort_limit(beg, end, compare, 1);
-            if (last == end)
-            {
-                return;
-            }
-            if (last - beg >= incre << 1)
-            {
-                beg += ((last - beg) / incre - 1) * incre;
-                len = end - beg;
-            }
-        }
-    }
 
-    insert_sort(beg, beg + incre_list[1], compare);
-    unguarded_insert_sort(beg + incre_list[1], end, compare);
+        insert_sort(beg, beg + incre_list[1], compare);
+        unguarded_insert_sort(beg + incre_list[1], end, compare);
+    }
+    else
+    {
+        insert_sort(beg, end, compare);
+    }
 }
 
 template <class RandomAccessIterator, class Comp>
@@ -748,7 +755,7 @@ void swap_2_part_with_same_length(RandomAccessIterator beg, RandomAccessIterator
 }
 
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator>
-RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end)
+RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, size_t bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end)
 {
     RandomAccessIterator ret = beg + (end - mid);
     while (true)
@@ -757,7 +764,7 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
         {
             if (mid - beg > 0)
             {
-                if (mid - beg > bufsize)
+                if ((size_t)(mid - beg) > bufsize)
                 {
                     swap_2_part_with_same_length(beg, mid);
                     RandomAccessIterator m = mid;
@@ -799,7 +806,7 @@ RandomAccessIterator swap_2_part_with_buffer(RandomAccessBufferIterator buf, int
         {
             if (end - mid > 0)
             {
-                if (end - mid > bufsize)
+                if ((size_t)(end - mid) > bufsize)
                 {
                     swap_2_part_with_same_length(mid - (end - mid), mid);
                     RandomAccessIterator m = mid;
@@ -922,7 +929,7 @@ std::pair<RandomAccessIterator, RandomAccessIterator> find_swap_bound(RandomAcce
 
 // stable sort
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void merge_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
+void merge_2_part_with_buffer(RandomAccessBufferIterator buf, size_t bufsize, RandomAccessIterator beg, RandomAccessIterator mid, RandomAccessIterator end, Comp compare)
 {
     if (!compare(*mid, *(mid - 1)))
     {
@@ -959,7 +966,7 @@ void merge_2_part_with_buffer(RandomAccessBufferIterator buf, int bufsize, Rando
         return;
     }
 
-    if (end - mid <= bufsize || mid - beg <= bufsize)
+    if ((size_t)(end - mid) <= bufsize || (size_t)(mid - beg) <= bufsize)
     {
         merge_2_part_force<safecopy>(buf, beg, mid, end, compare);
         return;
@@ -992,7 +999,7 @@ void merge_sort_recursive(RandomAccessBufferIterator buf, RandomAccessIterator b
 
 // stable sort
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void merge_sort_recursive_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+void merge_sort_recursive_with_buffer(RandomAccessBufferIterator buf, size_t bufsize, RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     size_t len = end - beg;
     if (len < merge_insertion_sort_threshold)
@@ -1022,9 +1029,9 @@ void merge_sort_with_buffer(RandomAccessIterator beg, RandomAccessIterator end, 
             }
             else if (merge_sort_alloc_buffer)
             {
-                int buf_size = (int)sqrt(end - beg + 0.1);
-                value_type * buf = new value_type[buf_size];
-                merge_sort_recursive_with_buffer<safecopy>(buf, buf_size, beg, end, compare);
+                size_t bufsize = (size_t)sqrt(end - beg + 0.1);
+                value_type * buf = new value_type[bufsize];
+                merge_sort_recursive_with_buffer<safecopy>(buf, bufsize, beg, end, compare);
                 delete[] buf;
             }
             else
@@ -1278,7 +1285,7 @@ void tim_sort_force_stack_merge(RandomAccessBufferIterator buf, RandomAccessIter
 }
 
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void tim_sort_force_stack_merge_with_buffer(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator* beg, RandomAccessIterator* end, Comp compare)
+void tim_sort_force_stack_merge_with_buffer(RandomAccessBufferIterator buf, size_t bufsize, RandomAccessIterator* beg, RandomAccessIterator* end, Comp compare)
 {
     while (end - beg > 1)
     {
@@ -1381,7 +1388,7 @@ void tim_sort_stack_merge_13(RandomAccessBufferIterator buf, RandomAccessIterato
 }
 
 template <bool safecopy, class RandomAccessIterator, class RandomAccessBufferIterator, class Comp>
-void tim_sort_stack_merge_with_buffer_13(RandomAccessBufferIterator buf, int bufsize, RandomAccessIterator* run_stack, RandomAccessIterator* &stack_top, RandomAccessIterator end, Comp compare)
+void tim_sort_stack_merge_with_buffer_13(RandomAccessBufferIterator buf, size_t bufsize, RandomAccessIterator* run_stack, RandomAccessIterator* &stack_top, RandomAccessIterator end, Comp compare)
 {
     while (stack_top - run_stack >= 2 && end - stack_top[0] > stack_top[0] - stack_top[-1])
     {
@@ -1414,7 +1421,7 @@ void tim_sort_stack_merge_with_buffer_13(RandomAccessBufferIterator buf, int buf
 
 // stable sort
 template <bool safecopy, class RandomAccessIterator, class Comp>
-void tim_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, int bufsize, Comp compare)
+void tim_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, size_t bufsize, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
     if (end - beg > 1)
@@ -1426,7 +1433,7 @@ void tim_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, int buf
 
         if (end > beg && (end - run_stack[0]) * sizeof(value_type) > merge_sort_stack_buffer_size)
         {
-            if (bufsize >= (end - run_stack[0]) / 2)
+            if (bufsize >= (size_t)(end - run_stack[0]) / 2)
             {
                 value_type* buf = safecopy ? new value_type[(end - run_stack[0]) / 2]
                     : (value_type*)malloc((end - run_stack[0]) / 2 * sizeof(value_type));
@@ -1709,7 +1716,7 @@ void quick_sort(RandomAccessIterator beg, RandomAccessIterator end)
 template <class RandomAccessIterator, class Comp>
 void tim_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    internal::tim_sort_buffer<false>(beg, end, end - beg, compare);
+    internal::tim_sort_buffer<false>(beg, end, (size_t)(end - beg), compare);
 }
 
 // stable sort
@@ -1737,8 +1744,11 @@ void tim_sort_s(RandomAccessIterator beg, RandomAccessIterator end)
 template <class RandomAccessIterator, class Comp>
 void tim_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    int bufsize = (int)sqrt(end - beg + 0.1);
-    internal::tim_sort_buffer<false>(beg, end, bufsize, compare);
+    if (end - beg > 1)
+    {
+        size_t bufsize = (size_t)sqrt(end - beg + 0.1);
+        internal::tim_sort_buffer<false>(beg, end, bufsize, compare);
+    }
 }
 
 // stable sort
@@ -1752,8 +1762,11 @@ void tim_sort_buffer(RandomAccessIterator beg, RandomAccessIterator end)
 template <class RandomAccessIterator, class Comp>
 void tim_sort_buffer_s(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    int bufsize = (int)sqrt(end - beg + 0.1);
-    internal::tim_sort_buffer<true>(beg, end, bufsize, compare);
+    if (end - beg > 1)
+    {
+        size_t bufsize = (size_t)sqrt(end - beg + 0.1);
+        internal::tim_sort_buffer<true>(beg, end, bufsize, compare);
+    }
 }
 
 // stable sort
