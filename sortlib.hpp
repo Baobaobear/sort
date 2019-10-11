@@ -26,6 +26,7 @@ namespace baobao
 enum
 {
     qsort_insertion_sort_threshold = 40,
+    shellsort_insertion_sort_threshold = 32,
 
     find_swap_bound_optimize_threshold = 256,
 
@@ -477,7 +478,7 @@ RandomAccessIterator unguarded_insert_sort_limit(RandomAccessIterator beg, Rando
 template <class RandomAccessIterator, class Comp>
 void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    if (end - beg > 10)
+    if (end - beg > shellsort_insertion_sort_threshold)
     {
         typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
         typedef typename std::iterator_traits<RandomAccessIterator>::value_type value_type;
