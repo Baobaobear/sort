@@ -2,6 +2,8 @@
 // author:      baobaobear
 // create date: 2019-09-20
 
+#ifndef _BAOBAO_SORTTEST_HPP_
+#define _BAOBAO_SORTTEST_HPP_
 #pragma once
 
 // TEST_TYPE_SIMPLE
@@ -24,8 +26,6 @@
 
 namespace baobao
 {
-
-typedef int radix_index_t;
 
 struct TestClass
 {
@@ -88,9 +88,9 @@ struct TestClass
         return val == v;
     }
 
-    radix_index_t get_index() const
+    uint32_t get_index() const
     {
-        return val;
+        return (uint32_t)val + (1U << 31);
     }
 };
 
@@ -302,6 +302,13 @@ void baobao_indirect_qsort(sort_element_t arr[], size_t len)
     baobao::sort::indirect_qsort(arr, arr + len);
 }
 
+#if TEST_TYPE_SIMPLE < 2
+void baobao_radix_sort_in_place(sort_element_t arr[], size_t len)
+{
+    baobao::sort::radix_sort_in_place(arr, arr + len);
+}
+#endif
+
 
 }
 
@@ -332,3 +339,5 @@ void wiki_sort(sort_element_t arr[], size_t len)
 }
 
 }
+
+#endif //_BAOBAO_SORTTEST_HPP_

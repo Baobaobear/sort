@@ -3,6 +3,8 @@
 // create date: 2019-09-20
 // This library is compatible with C++03
 
+#ifndef _BAOBAO_SORTLIB_HPP_
+#define _BAOBAO_SORTLIB_HPP_
 #pragma once
 
 #include <cstddef>
@@ -61,6 +63,12 @@ struct is_integral
 template< class T >
 struct is_floating_point
     : baobao::util::value_constant<bool, std::is_floating_point<T>::value>
+{
+};
+
+template< class T >
+struct is_pointer
+    : baobao::util::value_constant<bool, std::is_pointer<T>::value>
 {
 };
 
@@ -138,11 +146,29 @@ struct is_floating_point<double>
 {
 };
 
+template< class T >
+struct is_pointer
+    : baobao::util::value_constant<bool, false>
+{
+};
+
+template< class T >
+struct is_pointer<T*>
+    : baobao::util::value_constant<bool, true>
+{
+};
+
 #endif
 
 template< class T >
 struct is_arithmetic
     : baobao::util::value_constant<bool, baobao::util::is_integral<T>::value || baobao::util::is_floating_point<T>::value>
+{
+};
+
+template< class T >
+struct is_scalar
+    : baobao::util::value_constant<bool, baobao::util::is_arithmetic<T>::value || baobao::util::is_pointer<T>::value>
 {
 };
 
@@ -486,7 +512,7 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
         diff_type incre_list[61] = { 0, 9, 34, 182, 836, 4025, 19001, 90358, 428481, 2034035, 9651787, 45806244, 217378076, 1031612713 };
         const double incre_factor = 2.9; // simple and fast enought
 
-        if (!util::is_arithmetic<value_type>::value)
+        if (!util::is_scalar<value_type>::value)
         {
             incre_list[1] = 10;
         }
@@ -499,7 +525,7 @@ void shell_sort(RandomAccessIterator beg, RandomAccessIterator end, Comp compare
                 incre_index = i;
                 break;
             }
-            if (!util::is_arithmetic<value_type>::value || incre_list[i + 1] == 0)
+            if (!util::is_scalar<value_type>::value || incre_list[i + 1] == 0)
             {
                 incre_list[i + 1] = (diff_type)(mul * incre_factor);
             }
@@ -1057,7 +1083,7 @@ RandomAccessIterator quick_sort_partition(RandomAccessIterator beg, RandomAccess
     RandomAccessIterator l = beg, r = end - 1;
     uint32_t rnd = util::fake_rand_simple();
     diff_type n = end - beg, h = (n - 1) / 2;
-    if (util::is_arithmetic<value_type>::value)
+    if (util::is_scalar<value_type>::value)
     {
         diff_type w = h;
         util::make_mid_pivot(*(beg + rnd % w), *r, *(beg + h + rnd % w), compare);
@@ -1570,6 +1596,142 @@ void indirect_qsort(RandomAccessIterator beg, RandomAccessIterator end, Comp com
     }
 }
 
+template <class RandomAccessIterator, class RadixIndexFunc, class Comp>
+void radix_sort_msd_in_place(RandomAccessIterator beg, RandomAccessIterator end, RadixIndexFunc get_index, uint32_t offset, Comp compare)
+{
+    if (end - beg < qsort_insertion_sort_threshold)
+    {
+        internal::q_insert_sort(beg, end, compare);
+        return;
+    }
+    uint32_t counter[256] = { 0 }, not_empty_count = 0;
+    RandomAccessIterator _split_iter[257], *split_iter = &_split_iter[1];
+    for (RandomAccessIterator i = beg; i < end; ++i)
+    {
+        uint32_t index = (get_index(*i) >> offset) & 0xff;
+        counter[index]++;
+    }
+    _split_iter[0] = beg;
+    for (size_t i = 0; i < 256; ++i)
+    {
+        not_empty_count += counter[i] > 0;
+        split_iter[i] = split_iter[i - 1] + counter[i];
+    }
+    if (not_empty_count > 1)
+    {
+        RandomAccessIterator sort_iter[256];
+        memcpy(sort_iter, _split_iter, sizeof(sort_iter));
+        for (size_t i = 0; i < 256; ++i)
+        {
+            if (split_iter[i] - split_iter[i - 1] > 0)
+            {
+                for (RandomAccessIterator start_i = sort_iter[i]; start_i < split_iter[i]; ++start_i)
+                {
+                    if (start_i < sort_iter[i]) start_i = sort_iter[i];
+
+                    RandomAccessIterator cur = start_i;
+                    while (true)
+                    {
+                        uint32_t index = (get_index(*cur) >> offset) & 0xff;
+                        if (i == index)
+                        {
+                            sort_iter[index]++;
+                            break;
+                        }
+
+                        std::swap(*cur, *sort_iter[index]);
+                        sort_iter[index]++;
+                    }
+                }
+                if (split_iter[i] - split_iter[i - 1] > 1)
+                {
+                    if (offset >= 8)
+                    {
+                        radix_sort_msd_in_place(split_iter[i - 1], split_iter[i], get_index, offset - 8, compare);
+                    }
+                    else
+                    {
+                        internal::quick_sort(split_iter[i - 1], split_iter[i], compare);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if (offset >= 8)
+        {
+            radix_sort_msd_in_place(beg, end, get_index, offset - 8, compare);
+        }
+        else
+        {
+            internal::quick_sort(beg, end, compare);
+        }
+    }
+}
+
+template <class RadixIndexValue>
+uint32_t radix_get_max_offset(RadixIndexValue index)
+{
+    uint32_t offset = 0;
+    for (; index >= 256; index >>= 8)
+    {
+        offset += 8;
+    }
+    return offset;
+}
+
+template <class RandomAccessIterator, class RadixIndexFunc, class Comp>
+void radix_sort_msd_in_place(RandomAccessIterator beg, RandomAccessIterator end, RadixIndexFunc get_index, Comp compare)
+{
+    uint32_t max_offset = 0;
+    for (RandomAccessIterator i = beg; i < end; ++i)
+    {
+        uint32_t offset = radix_get_max_offset(get_index(*i));
+        if (max_offset < offset)
+            max_offset = offset;
+    }
+    radix_sort_msd_in_place(beg, end, get_index, max_offset, compare);
+}
+
+template<class T, class IndexType>
+struct radix_get_index
+{
+    IndexType operator()(const T& v)
+    {
+        return v.get_index();
+    }
+};
+
+template<class IndexType>
+struct radix_get_index<int, IndexType>
+{
+    uint32_t operator()(const int& v)
+    {
+        return (uint32_t)v + (1U << 31);
+    }
+};
+
+template<class IndexType>
+struct radix_get_index<unsigned, IndexType>
+{
+    uint32_t operator()(const unsigned& v)
+    {
+        return v;
+    }
+};
+
+#if __cplusplus >= 201103L || _MSC_VER >= 1600
+template<class IndexType>
+struct radix_get_index<int64_t, IndexType>
+{
+    uint64_t operator()(const unsigned& v)
+    {
+        return v;
+    }
+};
+#endif
+
 } // namespace internal
 
 namespace sort
@@ -1791,6 +1953,20 @@ void indirect_qsort(RandomAccessIterator beg, RandomAccessIterator end)
     indirect_qsort(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
 }
 
+template <class IndexType, class RandomAccessIterator, class Comp>
+void radix_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
+{
+    internal::radix_sort_msd_in_place(beg, end, internal::radix_get_index<typename std::iterator_traits<RandomAccessIterator>::value_type, IndexType>(), compare);
+}
+
+template <class RandomAccessIterator>
+void radix_sort_in_place(RandomAccessIterator beg, RandomAccessIterator end)
+{
+    radix_sort_in_place<uint32_t>(beg, end, std::less<typename std::iterator_traits<RandomAccessIterator>::value_type>());
+}
+
 } // namespace sort
 
 } // namespace baobao
+
+#endif //_BAOBAO_SORTLIB_HPP_

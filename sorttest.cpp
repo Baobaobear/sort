@@ -203,6 +203,9 @@ void init_test_func_map(std::map<std::string, arrar_function_t> &test_func_map)
         test_func_map["bao_indir"] = baobao_warp::baobao_indirect_qsort;
         test_func_map["bao_tim"] = baobao_warp::baobao_tim_sort;
         test_func_map["bao_tim_buf"] = baobao_warp::baobao_tim_sort_buffer;
+#if TEST_TYPE_SIMPLE < 2
+        test_func_map["bao_radix_in"] = baobao_warp::baobao_radix_sort_in_place;
+#endif
     }
     // https://github.com/Mrrl/GrailSort
     {
