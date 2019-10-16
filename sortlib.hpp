@@ -580,19 +580,14 @@ void max_heapify_p(RandomAccessIterator first, RandomAccessIterator target, Rand
     typename std::iterator_traits<RandomAccessIterator>::value_type temp = *target;
     --first;
     RandomAccessIterator son;
-    for (; (son = target + (target - first)) < last; target = son)
+    for (; (son = target + (target - first)) <= last; target = son)
     {
-        if (compare(*son, *(son + 1)))
+        if (son < last && compare(*son, *(son + 1)))
             ++son;
         if (compare(temp, *son))
             *target = *son;
         else
             break;
-    }
-    if (son == last && compare(temp, *son))
-    {
-        *target = *son;
-        target = son;
     }
     *target = temp;
 }
@@ -601,10 +596,9 @@ template <class RandomAccessIterator, class Comp>
 void heap_sort_p(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
     typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
-    diff_type len = end - beg;
-    if (len > 1)
+    if (end - beg > 1)
     {
-        for (diff_type i = len / 2 - 1; i >= 0; --i)
+        for (diff_type i = (end - beg) / 2 - 1; i >= 0; --i)
             max_heapify_p(beg, beg + i, end - 1, compare);
         for (; --end > beg; )
         {
@@ -621,33 +615,30 @@ void max_heapify_1(RandomAccessIterator arr, size_t index, size_t last, Comp com
     size_t child;
     for (; (child = index << 1) <= last; index = child)
     {
-        if (child < last &&
-            compare(*(arr + child), *(arr + child + 1)))
+        if (child < last && compare(*(arr + child), *(arr + child + 1)))
             ++child;
         if (compare(temp, *(arr + child)))
             *(arr + index) = *(arr + child);
         else
             break;
     }
-    //if (child == last && compare(temp, *(arr + child)))
-    //{
-    //    *(arr + index) = *(arr + child);
-    //    index = child;
-    //}
     *(arr + index) = temp;
 }
 
 template <class RandomAccessIterator, class Comp>
 void heap_sort_1(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typename std::iterator_traits<RandomAccessIterator>::difference_type length = end - beg;
-    RandomAccessIterator parr = beg - 1;
-    for (size_t i = length / 2; i > 0; --i)
-        max_heapify_1(parr, i, length, compare);
-    for (size_t i = length - 1; i > 0; --i)
+    if (end - beg > 1)
     {
-        std::swap(*beg, *(beg + i));
-        max_heapify_1(parr, 1, i, compare);
+        size_t length = (size_t)(end - beg);
+        RandomAccessIterator parr = beg - 1;
+        for (size_t i = length / 2; i > 0; --i)
+            max_heapify_1(parr, i, length, compare);
+        for (size_t i = length - 1; i > 0; --i)
+        {
+            std::swap(*beg, *(beg + i));
+            max_heapify_1(parr, 1, i, compare);
+        }
     }
 }
 
