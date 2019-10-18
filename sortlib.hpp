@@ -595,15 +595,14 @@ void max_heapify_p(RandomAccessIterator first, RandomAccessIterator target, Rand
 template <class RandomAccessIterator, class Comp>
 void heap_sort_p(RandomAccessIterator beg, RandomAccessIterator end, Comp compare)
 {
-    typedef typename std::iterator_traits<RandomAccessIterator>::difference_type diff_type;
     if (end - beg > 1)
     {
-        for (diff_type i = (end - beg) / 2 - 1; i >= 0; --i)
-            max_heapify_p(beg, beg + i, end - 1, compare);
-        for (; --end > beg; )
+        for (RandomAccessIterator i = beg + (end - beg) / 2; i >= beg; --i)
+            max_heapify_p(beg, i, end - 1, compare);
+        for (--end; end > beg; )
         {
-            std::swap(*beg, *end);
-            max_heapify_p(beg, beg, end - 1, compare);
+            std::swap(*beg, *end--);
+            max_heapify_p(beg, beg, end, compare);
         }
     }
 }
