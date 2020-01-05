@@ -123,7 +123,7 @@ bool check_sorted_stable(RandomAccessIterator beg, RandomAccessIterator end, Com
 
 uint32_t random_int(uint32_t max_int)
 {
-    return (uint32_t)(baobao::util::rand_uint32() % (max_int + 1));
+    return (uint32_t)(baobao::util::rand_uint32(max_int));
 }
 
 template<class RandomAccessIterator>

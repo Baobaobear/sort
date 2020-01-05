@@ -235,40 +235,142 @@ uint32_t fake_rand_simple()
     return ++s_rnd;
 }
 
-class LinearRandomNumberGenerator
+struct taus88
 {
-    uint32_t rnd;
-public:
-    LinearRandomNumberGenerator()
+    typedef uint32_t result_type;
+    static result_type min() { return 0; }
+    static result_type max() { return 0xFFFFFFFFUL; }
+    static const uint32_t seed_mul = 134775813;
+    static const int init_iter = 16;
+    uint32_t s[3];
+    taus88() { init(time(0)); }
+    taus88(uint32_t seed) { init(seed); }
+    void init (uint32_t seed) { init(seed, (seed + 1) * seed_mul + 1, ~seed * seed_mul + 1); }
+    void init (uint32_t seed1, uint32_t seed2, uint32_t seed3)
     {
-        rnd = (uint32_t)time(NULL);
+        s[0] = seed1;
+        s[1] = seed2;
+        s[2] = seed3;
+        for (int i = 0; i < init_iter; ++i) (*this)();
     }
-    void set_seed(uint32_t seed)
-    {
-        rnd = seed;
+    inline uint32_t tausworthe(uint32_t arg, uint32_t stage1, uint32_t stage2, uint32_t stage3, uint32_t limit) {
+        return ((arg & limit) << stage1) ^ (((arg << stage2) ^ arg) >> stage3);
     }
-    uint32_t next()
-    {
-        // ANSI C
-        // https://en.wikipedia.org/wiki/Linear_congruential_generator
-        rnd = rnd * 1103515245u + 12345;
-        return rnd;
+    uint32_t operator()() {
+        s[0] = tausworthe(s[0], 12, 13, 19, 4294967294UL);
+        s[1] = tausworthe(s[1], 4, 2, 25, 4294967288UL);
+        s[2] = tausworthe(s[2], 17, 3, 11, 4294967280UL);
+        return (s[0] ^ s[1] ^ s[2]);
     }
-    static LinearRandomNumberGenerator& instance()
+    static taus88& instance()
     {
-        static LinearRandomNumberGenerator rng;
+        static taus88 rng;
         return rng;
+    }
+};
+
+template<class _Eg32>
+struct uint32_distributor
+{
+    _Eg32& eg;
+    uint32_t r16, r16s;
+    uint32_t r8, r8s;
+    uint32_distributor(_Eg32& _eg) : eg(_eg) {
+        r16s = 0;
+        r8s = 0;
+    }
+    uint32_t i32(uint32_t n) {
+        ++n;
+        if ((n & -n) == n) {
+            uint32_t r = (uint32_t)eg();
+            return r & (n - 1);
+        }
+        uint32_t m = n;
+        while (m & (m - 1)) m += m & -m;
+        --m;
+        for (;;) {
+            uint32_t r = (uint32_t)eg();
+            r &= m;
+            if (r < n) return r;
+        }
+    }
+    uint32_t i16(uint32_t n) {
+        ++n;
+        if (r16s == 0) {
+            r16 = eg(); r16s = 2;
+        }
+        if ((n & -n) == n) {
+            --r16s;
+            uint32_t r = r16 & 0xffff;
+            r16 >>= 16;
+            return r & (n - 1);
+        }
+        uint32_t m = n;
+        while (m & (m - 1)) m += m & -m;
+        --m;
+        for (;;) {
+            --r16s;
+            uint32_t r = r16 & 0xffff;
+            r16 >>= 16;
+            r &= m;
+            if (r < n) return r;
+            if (r16s == 0) {
+                r16 = eg(); r16s = 2;
+            }
+        }
+    }
+    uint32_t i8(uint32_t n) {
+        ++n;
+        if (r8s == 0) {
+            r8 = eg(); r8s = 4;
+        }
+        if ((n & -n) == n) {
+            --r8s;
+            uint32_t r = r8 & 0xff;
+            r8 >>= 8;
+            return r & (n - 1);
+        }
+        uint32_t m = n;
+        while (m & (m - 1)) m += m & -m;
+        --m;
+        for (;;) {
+            --r8s;
+            uint32_t r = r8 & 0xff;
+            r8 >>= 8;
+            r &= m;
+            if (r < n) return r;
+            if (r8s == 0) {
+                r8 = eg(); r8s = 4;
+            }
+        }
+    }
+    uint32_t distribution(uint32_t n) {
+        if (n <= 0)
+            return 0;
+        if (n <= 0xffff)
+        {
+            if (n <= 0xff)
+                return i8(n);
+            else
+                return i16(n);
+        }
+        else
+            return i32(n);
+    }
+    uint32_t distribution(uint32_t a, uint32_t b) {
+        return distribution(b - a) + a;
     }
 };
 
 void rand_seed(uint32_t seed)
 {
-    baobao::util::LinearRandomNumberGenerator::instance().set_seed(seed);
+    baobao::util::taus88::instance() = baobao::util::taus88(seed);
 }
 
-uint32_t rand_uint32()
+uint32_t rand_uint32(int32_t n)
 {
-    return baobao::util::LinearRandomNumberGenerator::instance().next();
+    static uint32_distributor<taus88> dis(baobao::util::taus88::instance());
+    return (uint32_t)dis.distribution(n);
 }
 
 } // namespace util
